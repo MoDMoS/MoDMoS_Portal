@@ -31,10 +31,28 @@ npm run dev
 
 ## Build / Deploy
 
+บน VPS หลัง push โค้ด จากเครื่อง — รันคำสั่งเดียว:
+
 ```bash
-npm ci
-npm run build
-sudo rsync -a --delete dist/ /var/www/portal/
-sudo cp deploy/nginx-portal.conf /etc/nginx/sites-available/portal
-sudo nginx -t && sudo systemctl reload nginx
+chmod +x ~/MoDMoS_Portal/scripts/deploy-all.sh
+~/MoDMoS_Portal/scripts/deploy-all.sh
 ```
+
+หรือเฉพาะส่วน:
+
+```bash
+~/MoDMoS_Portal/scripts/deploy-all.sh portal
+~/MoDMoS_Portal/scripts/deploy-all.sh investment
+~/MoDMoS_Portal/scripts/deploy-all.sh gold
+```
+
+ตั้ง alias (ครั้งเดียว):
+
+```bash
+echo 'alias deploy-modmos="$HOME/MoDMoS_Portal/scripts/deploy-all.sh"' >> ~/.bashrc
+source ~/.bashrc
+deploy-modmos          # ทั้งหมด
+deploy-modmos portal   # เฉพาะ portal
+```
+
+รายละเอียด path / SSO: [docs/VPS.md](docs/VPS.md)

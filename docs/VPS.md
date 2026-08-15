@@ -36,6 +36,37 @@ AUTH_SECRET=your-long-random-secret
 3. Gold: `VITE_BASE=/gold/ npm run build` + `AUTH_SECRET` ใน api/.env
 4. Investment: `VITE_BASE=/Investment/` + docker compose rebuild
 
+## Deploy อัตโนมัติ (แนะนำ)
+
+หลัง `git push` จากเครื่องคุณ บน VPS รัน:
+
+```bash
+chmod +x ~/MoDMoS_Portal/scripts/deploy-all.sh ~/MoDMoS_Portal/deploy.sh \
+  ~/Investment/deploy.sh ~/Gold_Agent/deploy.sh
+
+# ครั้งแรก — ตั้ง alias
+echo 'alias deploy-modmos="$HOME/MoDMoS_Portal/scripts/deploy-all.sh"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+จากนั้นทุกครั้งที่อัปเดต:
+
+```bash
+deploy-modmos                 # pull + build Portal + Investment + Gold
+deploy-modmos portal          # เฉพาะ Portal
+deploy-modmos investment      # เฉพาะ Investment (docker)
+deploy-modmos gold            # เฉพาะ Gold (api pm2 + web /gold/)
+```
+
+สคริปต์อยู่ที่ `MoDMoS_Portal/scripts/deploy-all.sh`  
+ถ้าโฟลเดอร์ไม่ใช่ชื่อด้านล่าง ตั้ง env ก่อนรัน:
+
+```bash
+export PORTAL_DIR=$HOME/MoDMoS_Portal
+export INVESTMENT_DIR=$HOME/Investment
+export GOLD_DIR=$HOME/Gold_Agent
+```
+
 ## ตัวอย่าง Portal `.env`
 
 ```env
