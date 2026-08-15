@@ -90,9 +90,11 @@ reload_nginx() {
   fi
 }
 
-TARGETS=("${@:-}")
-if [[ ${#TARGETS[@]} -eq 0 ]] || [[ "${TARGETS[0]}" == "all" ]]; then
+TARGETS=()
+if [[ $# -eq 0 ]] || [[ "${1:-}" == "all" ]]; then
   TARGETS=(portal investment gold)
+else
+  TARGETS=("$@")
 fi
 
 for target in "${TARGETS[@]}"; do
