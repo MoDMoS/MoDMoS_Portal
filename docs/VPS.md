@@ -14,6 +14,9 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `/api/` (ledger) | Investment API ผ่าน Docker `:8080` |
 | `/gold/` | Gold Agent static |
 | `/market` `/indicator` `/strategy` | Gold API `127.0.0.1:3002` |
+| Postgres Portal Auth | `127.0.0.1:5433` |
+| Postgres Gold | `127.0.0.1:5432` |
+| Postgres Investment | `127.0.0.1:5434` |
 
 ### พอร์ตบน VPS (อย่าให้ชน)
 
@@ -24,6 +27,7 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `3002` | Gold Agent API |
 | `5432` | Gold Postgres (docker) |
 | `5433` | Portal Auth Postgres (docker) |
+| `5434` | Investment Postgres (docker) |
 | `8080` | Investment (docker) |
 
 ## SSO
