@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-exec "$(cd "$(dirname "$0")" && pwd)/deploy-all.sh" portal
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+exec "$ROOT/scripts/deploy-all.sh" portal
