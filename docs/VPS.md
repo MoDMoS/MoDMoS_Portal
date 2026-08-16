@@ -13,7 +13,18 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `/Investment/` | Investment Docker (`127.0.0.1:8080`) |
 | `/api/` (ledger) | Investment API ผ่าน Docker `:8080` |
 | `/gold/` | Gold Agent static |
-| `/market` `/indicator` `/strategy` | Gold API `127.0.0.1:3000` |
+| `/market` `/indicator` `/strategy` | Gold API `127.0.0.1:3002` |
+
+### พอร์ตบน VPS (อย่าให้ชน)
+
+| พอร์ต | Service |
+|------|---------|
+| `3000` | MoDMoS Discord bot (คงไว้) |
+| `3001` | Portal Auth API |
+| `3002` | Gold Agent API |
+| `5432` | Gold Postgres (docker) |
+| `5433` | Portal Auth Postgres (docker) |
+| `8080` | Investment (docker) |
 
 ## SSO
 
@@ -41,8 +52,9 @@ AUTH_SECRET=your-long-random-secret
 
 1. Portal UI: build → `/var/www/portal`
 2. Portal API: `cd api && docker compose up -d --build` (Postgres + API :3001)
-3. Nginx ใช้ `deploy/nginx-portal.conf` (แยก `/api/auth` `/api/admin` จาก ledger)
-4. Gold / Investment: rebuild ตามเดิม + `AUTH_SECRET` ตรงกับ Portal
+3. Nginx ใช้ `deploy/nginx-portal.conf` (Auth → `:3001`, Gold → `:3002`, ledger → `:8080`)
+4. Gold: ใน `api/.env` ตั้ง `PORT=3002` + `AUTH_SECRET` ตรง Portal แล้ว pm2 restart
+5. Investment: rebuild + `AUTH_SECRET` ตรง Portal
 
 ### Migrate user เก่าจาก Investment SQLite (ครั้งเดียว)
 
