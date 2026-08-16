@@ -18,6 +18,29 @@ PM2_APP="${PM2_APP:-gold-agent-api}"
 
 log() { printf '\n==> %s\n' "$*"; }
 
+# Prefer passwordless write when dirs are owned by deploy; fall back to sudo -n.
+run_as_root() {
+  if sudo -n true 2>/dev/null; then
+    sudo "$@"
+  else
+    echo "Need passwordless sudo for: $*" >&2
+    echo "One-time fix: see MoDMoS_Portal/docs/VPS.md (section: ไม่ต้องใส่รหัส sudo)" >&2
+    sudo "$@"
+  fi
+}
+
+publish_www() {
+  local src="$1"
+  local dest="$2"
+  if [[ -d "$dest" && -w "$dest" ]]; then
+    rsync -a --delete "$src" "$dest/"
+    return
+  fi
+  run_as_root mkdir -p "$dest"
+  run_as_root rsync -a --delete "$src" "$dest/"
+  run_as_root chown -R www-data:www-data "$dest"
+}
+
 pull() {
   local dir="$1"
   log "git pull in $dir"
@@ -33,9 +56,7 @@ deploy_portal() {
     npm run build
   )
   log "Publish Portal → $PORTAL_WWW"
-  sudo mkdir -p "$PORTAL_WWW"
-  sudo rsync -a --delete "$PORTAL_DIR/dist/" "$PORTAL_WWW/"
-  sudo chown -R www-data:www-data "$PORTAL_WWW"
+  publish_www "$PORTAL_DIR/dist/" "$PORTAL_WWW"
 }
 
 deploy_investment() {
@@ -73,20 +94,18 @@ deploy_gold() {
     npm ci
     VITE_BASE=/gold/ npm run build
   )
-  sudo mkdir -p "$GOLD_WWW"
-  sudo rsync -a --delete "$GOLD_DIR/web/dist/" "$GOLD_WWW/"
-  sudo chown -R www-data:www-data "$GOLD_WWW"
+  publish_www "$GOLD_DIR/web/dist/" "$GOLD_WWW"
 }
 
 reload_nginx() {
   if [[ -f /etc/nginx/sites-enabled/portal ]] || [[ -f /etc/nginx/sites-available/portal ]]; then
     log "Reload Nginx"
     if [[ -f "$PORTAL_DIR/deploy/nginx-portal.conf" ]]; then
-      sudo cp "$PORTAL_DIR/deploy/nginx-portal.conf" /etc/nginx/sites-available/portal
-      sudo ln -sf /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/portal
+      run_as_root cp "$PORTAL_DIR/deploy/nginx-portal.conf" /etc/nginx/sites-available/portal
+      run_as_root ln -sf /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/portal
     fi
-    sudo nginx -t
-    sudo systemctl reload nginx
+    run_as_root nginx -t
+    run_as_root systemctl reload nginx
   fi
 }
 

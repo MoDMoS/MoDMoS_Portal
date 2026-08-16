@@ -1,0 +1,12 @@
+# Passwordless sudo for nginx reload only.
+# Static publish should use deploy-owned dirs under /var/www (see docs/VPS.md).
+#
+# Install once:
+#   sudo cp /home/deploy/MoDMoS_Portal/deploy/sudoers-deploy /etc/sudoers.d/modmos-deploy
+#   sudo chmod 440 /etc/sudoers.d/modmos-deploy
+#   sudo visudo -cf /etc/sudoers.d/modmos-deploy
+
+deploy ALL=(root) NOPASSWD: /usr/bin/cp /home/deploy/MoDMoS_Portal/deploy/nginx-portal.conf /etc/nginx/sites-available/portal
+deploy ALL=(root) NOPASSWD: /usr/bin/ln -sf /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/portal
+deploy ALL=(root) NOPASSWD: /usr/sbin/nginx -t
+deploy ALL=(root) NOPASSWD: /usr/bin/systemctl reload nginx
