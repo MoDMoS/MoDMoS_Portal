@@ -49,7 +49,7 @@ pull() {
 
 deploy_portal() {
   pull "$PORTAL_DIR"
-  log "Build Portal"
+  log "Build Portal UI"
   (
     cd "$PORTAL_DIR"
     npm ci
@@ -57,6 +57,19 @@ deploy_portal() {
   )
   log "Publish Portal → $PORTAL_WWW"
   publish_www "$PORTAL_DIR/dist/" "$PORTAL_WWW"
+
+  if [[ -f "$PORTAL_DIR/api/docker-compose.yml" ]]; then
+    log "Rebuild Portal Auth API (docker)"
+    (
+      cd "$PORTAL_DIR/api"
+      if [[ ! -f .env ]]; then
+        echo "Missing $PORTAL_DIR/api/.env (copy from .env.example)" >&2
+        exit 1
+      fi
+      docker compose up -d --build
+      docker compose ps
+    )
+  fi
 }
 
 deploy_investment() {

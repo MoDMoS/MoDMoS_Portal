@@ -4,6 +4,7 @@ export type Service = {
   description: string;
   href?: string;
   available: boolean;
+  permission: string;
 };
 
 function url(value: string | undefined): string | undefined {
@@ -21,6 +22,7 @@ export const services: Service[] = [
     description: 'แลกเงิน ซื้อขายหุ้นไทย/นอก ปันผล และภาพรวมพอร์ต',
     href: investmentUrl,
     available: Boolean(investmentUrl),
+    permission: 'service:investment',
   },
   {
     id: 'gold-agent',
@@ -28,5 +30,6 @@ export const services: Service[] = [
     description: 'ราคาทองคำ สัญญาณเทรด และกราฟแท่งเทียน',
     href: goldAgentUrl,
     available: Boolean(goldAgentUrl),
+    permission: 'service:gold-agent',
   },
 ];

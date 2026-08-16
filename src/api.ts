@@ -2,6 +2,30 @@ export type User = {
   id: string;
   email: string;
   name: string;
+  roles: string[];
+  permissions: string[];
+};
+
+export type AdminPermission = {
+  id: string;
+  code: string;
+  name: string;
+};
+
+export type AdminRole = {
+  id: string;
+  code: string;
+  name: string;
+  isSystem: boolean;
+  permissions: AdminPermission[];
+};
+
+export type AdminUser = {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  roles: Array<{ id: string; code: string; name: string }>;
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -21,7 +45,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const message = Array.isArray(data.message)
       ? data.message.join(', ')
-      : data.message || (response.status === 401 ? 'กรุณาเข้าสู่ระบบ' : 'เกิดข้อผิดพลาด');
+      : data.message ||
+        (response.status === 401
+          ? 'กรุณาเข้าสู่ระบบ'
+          : response.status === 403
+            ? 'ไม่มีสิทธิ์เข้าถึง'
+            : 'เกิดข้อผิดพลาด');
     throw new Error(message);
   }
 
@@ -34,7 +63,12 @@ export const api = {
     request<T>(path, { method: 'POST', body: JSON.stringify(body ?? {}) }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body ?? {}) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
+
+export function hasPermission(user: User | null | undefined, code: string) {
+  return Boolean(user?.permissions?.includes(code));
+}
 
 export function portalLoginPath(next?: string) {
   if (!next) return '/login';

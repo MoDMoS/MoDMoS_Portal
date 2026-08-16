@@ -1,20 +1,33 @@
 # MoDMoS Portal
 
-หน้าเลือกบริการ + **login กลาง (SSO)** สำหรับ Investment และ Gold Agent
+หน้าเลือกบริการ + **Auth/SSO hub** (Portal API เป็นผู้ออก JWT)
 
 ## Dev
 
-ต้องการ Investment API ที่ `localhost:3000` (auth)
+ต้องการ:
+1. Portal Auth API ที่ `localhost:3001` (Postgres)
+2. Investment ledger API ที่ `localhost:3000` (optional สำหรับ service อื่น)
 
 ```bash
+# Portal API + Postgres
+cd api
+cp .env.example .env
+docker compose up -d db
+npm install
+npx prisma migrate dev --name init
+npm run start:dev
+
+# Portal UI (repo root)
+cd ..
 cp .env.example .env
 npm install
 npm run dev
 ```
 
-เปิด http://localhost:5174 — Vite proxy `/api` → Investment backend
+เปิด http://localhost:5174  
+Vite proxy: `/api/auth` + `/api/admin` → `:3001`, `/api/*` อื่น → Investment `:3000`
 
-## Env
+## Env (UI)
 
 | ตัวแปร | ความหมาย |
 |--------|----------|
@@ -23,36 +36,24 @@ npm run dev
 
 ## SSO
 
-- Login/register ที่ `/login` `/register`
-- Cookie `access_token` จาก Investment (`Path=/`)
-- Gold ต้องตั้ง `AUTH_SECRET` ให้ตรงกับ Investment
+- Login/register/admin ที่ Portal UI → Portal API (`/api/auth`, `/api/admin`)
+- Cookie `access_token` (`Path=/`) มี `roles` + `permissions` (+ `name`)
+- Investment / Gold แค่ verify cookie ด้วย `AUTH_SECRET` เดียวกัน
+- Default admin: ตั้งใน `api/.env` (`DEFAULT_ADMIN_*`)
 
 รายละเอียด VPS: [docs/VPS.md](docs/VPS.md)
 
+## Migrate users จาก Investment SQLite
+
+```bash
+cd api
+# หลัง Portal Postgres พร้อมแล้ว
+INVESTMENT_SQLITE_PATH=../path/to/Investment/backend/prisma/dev.db npm run migrate:from-investment
+```
+
 ## Build / Deploy
 
-บน VPS หลัง push โค้ด จากเครื่อง — รันคำสั่งเดียว:
-
 ```bash
-chmod +x ~/MoDMoS_Portal/scripts/deploy-all.sh
 ~/MoDMoS_Portal/scripts/deploy-all.sh
-```
-
-หรือเฉพาะส่วน:
-
-```bash
 ~/MoDMoS_Portal/scripts/deploy-all.sh portal
-~/MoDMoS_Portal/scripts/deploy-all.sh investment
-~/MoDMoS_Portal/scripts/deploy-all.sh gold
 ```
-
-ตั้ง alias (ครั้งเดียว):
-
-```bash
-echo 'alias deploy-modmos="$HOME/MoDMoS_Portal/scripts/deploy-all.sh"' >> ~/.bashrc
-source ~/.bashrc
-deploy-modmos          # ทั้งหมด
-deploy-modmos portal   # เฉพาะ portal
-```
-
-รายละเอียด path / SSO: [docs/VPS.md](docs/VPS.md)

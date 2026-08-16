@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { hasPermission } from './api';
 import { useAuth } from './auth';
 
 export function PortalTopBar({
@@ -9,6 +10,7 @@ export function PortalTopBar({
   subtitle?: string;
 }) {
   const { user, loading, logout } = useAuth();
+  const canAdmin = hasPermission(user, 'admin:access');
 
   return (
     <header className="topbar">
@@ -33,6 +35,11 @@ export function PortalTopBar({
             <Link className="topbar-name topbar-name-link" to="/profile">
               {user.name}
             </Link>
+            {canAdmin ? (
+              <Link className="btn-ghost" to="/admin">
+                Admin
+              </Link>
+            ) : null}
             <Link className="btn-ghost" to="/profile">
               โปรไฟล์
             </Link>

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { portalLoginPath } from '../api';
+import { hasPermission, portalLoginPath } from '../api';
 import { useAuth } from '../auth';
 import { PortalTopBar } from '../PortalTopBar';
 import { services, type Service } from '../services';
@@ -7,29 +7,34 @@ import { services, type Service } from '../services';
 function ServiceCard({
   service,
   index,
-  locked,
+  authLocked,
+  permissionLocked,
 }: {
   service: Service;
   index: number;
-  locked: boolean;
+  authLocked: boolean;
+  permissionLocked: boolean;
 }) {
+  const locked = authLocked || permissionLocked;
   const className = [
     'service-card',
     service.available && !locked ? 'service-card--live' : 'service-card--soon',
   ].join(' ');
+
+  const cta = !service.available
+    ? 'เร็วๆ นี้'
+    : authLocked
+      ? 'เข้าสู่ระบบเพื่อใช้งาน'
+      : permissionLocked
+        ? 'ไม่มีสิทธิ์เข้าถึง'
+        : 'เข้าใช้งาน';
 
   const body = (
     <>
       <span className="service-card__index">{String(index + 1).padStart(2, '0')}</span>
       <h2 className="service-card__name">{service.name}</h2>
       <p className="service-card__desc">{service.description}</p>
-      <span className="service-card__cta">
-        {!service.available
-          ? 'เร็วๆ นี้'
-          : locked
-            ? 'เข้าสู่ระบบเพื่อใช้งาน'
-            : 'เข้าใช้งาน'}
-      </span>
+      <span className="service-card__cta">{cta}</span>
     </>
   );
 
@@ -41,7 +46,7 @@ function ServiceCard({
     );
   }
 
-  if (service.available && locked) {
+  if (service.available && authLocked) {
     return (
       <Link
         className={className}
@@ -62,7 +67,7 @@ function ServiceCard({
 
 export function HomePage() {
   const { user, loading } = useAuth();
-  const locked = !loading && !user;
+  const authLocked = !loading && !user;
 
   return (
     <div className="shell">
@@ -93,7 +98,14 @@ export function HomePage() {
         <ul className="service-list">
           {services.map((service, index) => (
             <li key={service.id}>
-              <ServiceCard service={service} index={index} locked={locked} />
+              <ServiceCard
+                service={service}
+                index={index}
+                authLocked={authLocked}
+                permissionLocked={
+                  !authLocked && !hasPermission(user, service.permission)
+                }
+              />
             </li>
           ))}
         </ul>

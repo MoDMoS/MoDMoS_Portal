@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+api/node_modules
+api/dist
+
 .vscode/*
 !.vscode/extensions.json
 .idea
