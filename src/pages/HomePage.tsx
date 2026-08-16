@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { portalLoginPath } from '../api';
 import { useAuth } from '../auth';
+import { PortalTopBar } from '../PortalTopBar';
 import { services, type Service } from '../services';
 
 function ServiceCard({
@@ -60,50 +61,14 @@ function ServiceCard({
 }
 
 export function HomePage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const locked = !loading && !user;
 
   return (
     <div className="shell">
       <div className="atmosphere" aria-hidden="true" />
       <div className="grid-fade" aria-hidden="true" />
-
-      <header className="topbar">
-        <div className="topbar-inner">
-          <a className="topbar-brand" href="/">
-            <img
-              src={`${import.meta.env.BASE_URL}favicon.png`}
-              alt=""
-              width={44}
-              height={44}
-            />
-            <div>
-              <p className="topbar-title">MoDMoS</p>
-              <p className="topbar-sub">Portal</p>
-            </div>
-          </a>
-
-          {loading ? (
-            <span className="topbar-muted">กำลังโหลด...</span>
-          ) : user ? (
-            <div className="topbar-user">
-              <span className="topbar-name">{user.name}</span>
-              <button type="button" className="btn-ghost" onClick={() => void logout()}>
-                ออกจากระบบ
-              </button>
-            </div>
-          ) : (
-            <div className="topbar-user">
-              <Link className="btn-ghost" to="/login">
-                เข้าสู่ระบบ
-              </Link>
-              <Link className="btn-primary btn-primary--sm" to="/register">
-                สมัครสมาชิก
-              </Link>
-            </div>
-          )}
-        </div>
-      </header>
+      <PortalTopBar />
 
       <main className="hero">
         <div className="brand-row">

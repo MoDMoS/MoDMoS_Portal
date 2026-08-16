@@ -399,6 +399,74 @@ a {
   font-size: 0.9rem;
 }
 
+.form-success {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.topbar-name-link {
+  text-decoration: none;
+}
+
+.topbar-name-link:hover {
+  color: var(--accent);
+}
+
+.profile-main {
+  position: relative;
+  z-index: 1;
+  width: min(52rem, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.profile-head h1 {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: 1.85rem;
+  letter-spacing: -0.03em;
+}
+
+.profile-head p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.profile-back {
+  display: inline-block;
+  margin-top: 0.85rem;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-grid {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.profile-card {
+  width: 100%;
+  margin: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.profile-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
 .auth-footer {
   margin: 0.2rem 0 0;
   text-align: center;

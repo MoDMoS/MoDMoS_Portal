@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { HomePage } from './pages/HomePage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export function App() {
   return (
@@ -11,6 +12,7 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
