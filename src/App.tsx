@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import { AdminRolesPage, AdminUsersPage } from './pages/AdminPages';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { DiscordPage } from './pages/DiscordPage';
 import { HomePage } from './pages/HomePage';
 import { ProfilePage } from './pages/ProfilePage';
 
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/discord" element={<DiscordPage />} />
           <Route path="/admin" element={<AdminUsersPage />} />
           <Route path="/admin/roles" element={<AdminRolesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -39,6 +39,13 @@ function ServiceCard({
   );
 
   if (service.available && service.href && !locked) {
+    if (service.internal) {
+      return (
+        <Link className={className} to={service.href} style={{ animationDelay: `${180 + index * 90}ms` }}>
+          {body}
+        </Link>
+      );
+    }
     return (
       <a className={className} href={service.href} style={{ animationDelay: `${180 + index * 90}ms` }}>
         {body}

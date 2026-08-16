@@ -5,6 +5,8 @@ export type Service = {
   href?: string;
   available: boolean;
   permission: string;
+  /** Same-origin Portal route (use React Router Link) */
+  internal?: boolean;
 };
 
 function url(value: string | undefined): string | undefined {
@@ -31,5 +33,14 @@ export const services: Service[] = [
     href: goldAgentUrl,
     available: Boolean(goldAgentUrl),
     permission: 'service:gold-agent',
+  },
+  {
+    id: 'discord',
+    name: 'Discord Bot',
+    description: 'สถานะบอท เซิร์ฟเวอร์ และล็อกล่าสุดบน VPS',
+    href: '/discord',
+    available: true,
+    permission: 'service:discord',
+    internal: true,
   },
 ];

@@ -640,6 +640,92 @@ a {
   text-underline-offset: 3px;
 }
 
+.discord-refresh {
+  margin-left: auto;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+}
+
+.discord-refresh:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.discord-stats {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.discord-stats li {
+  border: 1px solid var(--panel-border);
+  border-radius: 0.9rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(160deg, rgba(15, 36, 32, 0.96), rgba(7, 20, 17, 0.92));
+  display: grid;
+  gap: 0.35rem;
+}
+
+.discord-stats span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.discord-stats strong {
+  font-size: 1.05rem;
+  word-break: break-word;
+}
+
+.discord-stats strong.ok {
+  color: var(--accent);
+}
+
+.discord-stats strong.bad {
+  color: #f07178;
+}
+
+.discord-logs {
+  margin-top: 2rem;
+}
+
+.discord-logs h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.discord-logs__hint {
+  margin: 0.35rem 0 0.9rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.discord-logs__console {
+  margin: 0;
+  max-height: 28rem;
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--panel-border);
+  background: rgba(4, 12, 10, 0.92);
+  color: #c8e6c0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @keyframes rise {
   from {
     opacity: 0;

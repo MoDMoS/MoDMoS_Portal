@@ -1,6 +1,7 @@
 export const PERMISSION_CODES = {
   SERVICE_INVESTMENT: 'service:investment',
   SERVICE_GOLD_AGENT: 'service:gold-agent',
+  SERVICE_DISCORD: 'service:discord',
   ADMIN_ACCESS: 'admin:access',
 } as const;
 
@@ -16,5 +17,9 @@ export const PERMISSION_CATALOG: Array<{ code: PermissionCode; name: string }> =
   [
     { code: PERMISSION_CODES.SERVICE_INVESTMENT, name: 'เข้าถึง Investment' },
     { code: PERMISSION_CODES.SERVICE_GOLD_AGENT, name: 'เข้าถึง Gold Agent' },
+    {
+      code: PERMISSION_CODES.SERVICE_DISCORD,
+      name: 'ดูสถานะ Discord Bot',
+    },
     { code: PERMISSION_CODES.ADMIN_ACCESS, name: 'จัดการ Admin / RBAC' },
   ];

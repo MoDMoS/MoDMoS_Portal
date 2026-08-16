@@ -14,6 +14,8 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `/api/` (ledger) | Investment API ผ่าน Docker `:8080` |
 | `/gold/` | Gold Agent static |
 | `/market` `/indicator` `/strategy` | Gold API `127.0.0.1:3002` |
+| `/discord` | Portal UI — สถานะ Discord Bot |
+| `/discord-api/` | Discord bot Express `127.0.0.1:3000` |
 | Postgres Portal Auth | `127.0.0.1:5433` |
 | Postgres Gold | `127.0.0.1:5432` |
 | Postgres Investment | `127.0.0.1:5434` |
@@ -34,9 +36,10 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 
 1. Login ที่ Portal → **Portal API** ออก cookie `access_token` (`Path=/`) พร้อม `roles` / `permissions` / `name`
 2. Investment / Gold verify cookie เดียวกัน และตรวจสิทธิ์ service จาก `permissions`
-3. `AUTH_SECRET` ของ **Portal API**, **Investment**, และ **Gold API** ต้องตรงกัน
+3. `AUTH_SECRET` ของ **Portal API**, **Investment**, **Gold API**, และ **Discord bot** ต้องตรงกัน
 4. Admin UI ที่ Portal `/admin` (ต้องมี `admin:access`)
-5. Default admin ตั้งใน Portal `api/.env`:
+5. Discord status ที่ `/discord` ต้องมี `service:discord` (admin ได้ทุกสิทธิ์อัตโนมัติ; ล็อกต้องมี `admin:access`)
+6. Default admin ตั้งใน Portal `api/.env`:
 
 ```env
 # MoDMoS_Portal/api/.env (หรือ api docker compose)
@@ -56,9 +59,10 @@ AUTH_SECRET=your-long-random-secret
 
 1. Portal UI: build → `/var/www/portal`
 2. Portal API: `cd api && docker compose up -d --build` (Postgres + API :3001)
-3. Nginx ใช้ `deploy/nginx-portal.conf` (Auth → `:3001`, Gold → `:3002`, ledger → `:8080`)
+3. Nginx ใช้ `deploy/nginx-portal.conf` (Auth → `:3001`, Discord → `:3000` ผ่าน `/discord-api/`, Gold → `:3002`, ledger → `:8080`)
 4. Gold: ใน `api/.env` ตั้ง `PORT=3002` + `AUTH_SECRET` ตรง Portal แล้ว pm2 restart
 5. Investment: rebuild + `AUTH_SECRET` ตรง Portal
+6. Discord bot: ใน `.env` ใส่ `AUTH_SECRET` เดียวกับ Portal แล้ว restart (pm2/systemd) — แล้ว login ใหม่ที่ Portal เพื่อได้ permission `service:discord`
 
 ### Migrate user เก่าจาก Investment SQLite (ครั้งเดียว)
 
