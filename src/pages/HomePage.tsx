@@ -75,6 +75,10 @@ function ServiceCard({
 export function HomePage() {
   const { user, loading } = useAuth();
   const authLocked = !loading && !user;
+  const visibleServices = services.filter(
+    (service) =>
+      service.id !== 'admin' || hasPermission(user, 'admin:access'),
+  );
 
   return (
     <div className="shell">
@@ -103,7 +107,7 @@ export function HomePage() {
         </p>
 
         <ul className="service-list">
-          {services.map((service, index) => (
+          {visibleServices.map((service, index) => (
             <li key={service.id}>
               <ServiceCard
                 service={service}

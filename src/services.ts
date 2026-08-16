@@ -19,6 +19,15 @@ const goldAgentUrl = url(import.meta.env.VITE_GOLD_AGENT_URL);
 
 export const services: Service[] = [
   {
+    id: 'admin',
+    name: 'Admin',
+    description: 'จัดการผู้ใช้ บทบาท และสิทธิ์เข้าถึงบริการ',
+    href: '/admin',
+    available: true,
+    permission: 'admin:access',
+    internal: true,
+  },
+  {
     id: 'investment',
     name: 'บันทึกการลงทุน',
     description: 'แลกเงิน ซื้อขายหุ้นไทย/นอก ปันผล และภาพรวมพอร์ต',
