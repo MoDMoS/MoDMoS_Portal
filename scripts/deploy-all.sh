@@ -36,9 +36,11 @@ publish_www() {
     rsync -a --delete "$src" "$dest/"
     return
   fi
+  echo "Need write access to $dest (one-time: sudo chown -R $USER:$USER $dest)" >&2
   run_as_root mkdir -p "$dest"
   run_as_root rsync -a --delete "$src" "$dest/"
-  run_as_root chown -R www-data:www-data "$dest"
+  # Keep deploy as owner so later deploys do not need sudo for rsync.
+  run_as_root chown -R "$USER:$USER" "$dest"
 }
 
 pull() {

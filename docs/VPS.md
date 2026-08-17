@@ -105,9 +105,9 @@ export GOLD_DIR=$HOME/Gold_Agent
 
 ## ไม่ต้องใส่รหัส sudo ทุกครั้ง
 
-ทำ **ครั้งเดียว** บน VPS (เลือกอย่างใดอย่างหนึ่ง หรือทำทั้งคู่):
+ทำ **ครั้งเดียว** บน VPS (ทำทั้งคู่):
 
-### 1) ให้ `deploy` เป็นเจ้าของโฟลเดอร์ static (แนะนำ)
+### 1) ให้ `deploy` เป็นเจ้าของโฟลเดอร์ static
 
 หลังนี้ `rsync` ไม่ต้องใช้ sudo:
 
@@ -116,6 +116,10 @@ sudo mkdir -p /var/www/portal /var/www/gold
 sudo chown -R deploy:deploy /var/www/portal /var/www/gold
 ```
 
-### 2) หรือตั้ง sudoers สำหรับ deploy
+### 2) ตั้ง sudoers สำหรับ nginx reload
 
-ดูไฟล์ `deploy/sudoers-deploy`
+```bash
+sudo cp /home/deploy/MoDMoS_Portal/deploy/sudoers-deploy /etc/sudoers.d/modmos-deploy
+sudo chmod 440 /etc/sudoers.d/modmos-deploy
+sudo visudo -cf /etc/sudoers.d/modmos-deploy
+```
