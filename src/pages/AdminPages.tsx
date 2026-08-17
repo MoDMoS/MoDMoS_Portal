@@ -16,6 +16,7 @@ import {
   type AdminUser,
 } from '../api';
 import { useAuth } from '../auth';
+import { ConfirmModal } from '../ConfirmModal';
 import { PortalTopBar } from '../PortalTopBar';
 
 function formatDate(value: string) {
@@ -97,6 +98,7 @@ export function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingUser, setPendingUser] = useState<AdminUser | null>(null);
 
   const load = useCallback(async () => {
     setError('');
@@ -113,19 +115,26 @@ export function AdminUsersPage() {
 
   if (redirect) return redirect;
 
-  async function removeUser(row: AdminUser) {
+  function requestRemove(row: AdminUser) {
     if (row.id === user?.id) {
       setError('ไม่สามารถลบบัญชีของตัวเองได้');
       return;
     }
-    if (!window.confirm(`ลบผู้ใช้ ${row.name} (${row.email})?`)) return;
-    setBusyId(row.id);
+    setError('');
+    setPendingUser(row);
+  }
+
+  async function confirmRemove() {
+    if (!pendingUser) return;
+    setBusyId(pendingUser.id);
     setError('');
     try {
-      await api.delete(`/admin/users/${row.id}`);
+      await api.delete(`/admin/users/${pendingUser.id}`);
+      setPendingUser(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ลบผู้ใช้ไม่สำเร็จ');
+      setPendingUser(null);
     } finally {
       setBusyId(null);
     }
@@ -190,7 +199,7 @@ export function AdminUsersPage() {
                           title="ลบ"
                           aria-label={`ลบ ${row.name}`}
                           disabled={busyId === row.id || row.id === user?.id}
-                          onClick={() => void removeUser(row)}
+                          onClick={() => requestRemove(row)}
                         >
                           <IconTrash />
                         </button>
@@ -203,6 +212,21 @@ export function AdminUsersPage() {
           </table>
         </div>
       </main>
+
+      <ConfirmModal
+        open={Boolean(pendingUser)}
+        title="ลบผู้ใช้"
+        message={
+          pendingUser
+            ? `ลบผู้ใช้ ${pendingUser.name} (${pendingUser.email})? การกระทำนี้ย้อนกลับไม่ได้`
+            : ''
+        }
+        confirmLabel="ลบ"
+        danger
+        busy={Boolean(pendingUser && busyId === pendingUser.id)}
+        onCancel={() => setPendingUser(null)}
+        onConfirm={() => void confirmRemove()}
+      />
     </div>
   );
 }
@@ -364,6 +388,7 @@ export function AdminRolesPage() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingRole, setPendingRole] = useState<AdminRole | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<RoleModalMode>('create');
@@ -457,18 +482,26 @@ export function AdminRolesPage() {
     }
   }
 
-  async function removeRole(role: AdminRole) {
+  function requestRemoveRole(role: AdminRole) {
     if (role.isSystem) return;
-    if (!window.confirm(`ลบ role ${role.name}?`)) return;
-    setBusyId(role.id);
+    setError('');
+    setMsg('');
+    setPendingRole(role);
+  }
+
+  async function confirmRemoveRole() {
+    if (!pendingRole) return;
+    setBusyId(pendingRole.id);
     setError('');
     setMsg('');
     try {
-      await api.delete(`/admin/roles/${role.id}`);
+      await api.delete(`/admin/roles/${pendingRole.id}`);
       setMsg('ลบ role แล้ว');
+      setPendingRole(null);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ลบ role ไม่สำเร็จ');
+      setPendingRole(null);
     } finally {
       setBusyId(null);
     }
@@ -557,7 +590,7 @@ export function AdminRolesPage() {
                           title="ลบ"
                           aria-label={`ลบ ${role.name}`}
                           disabled={role.isSystem || busyId === role.id}
-                          onClick={() => void removeRole(role)}
+                          onClick={() => requestRemoveRole(role)}
                         >
                           <IconTrash />
                         </button>
@@ -652,6 +685,21 @@ export function AdminRolesPage() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={Boolean(pendingRole)}
+        title="ลบ Role"
+        message={
+          pendingRole
+            ? `ลบ role ${pendingRole.name} (${pendingRole.code})? ผู้ใช้ที่ถือ role นี้จะเสียสิทธิ์นั้น`
+            : ''
+        }
+        confirmLabel="ลบ"
+        danger
+        busy={Boolean(pendingRole && busyId === pendingRole.id)}
+        onCancel={() => setPendingRole(null)}
+        onConfirm={() => void confirmRemoveRole()}
+      />
     </div>
   );
 }
