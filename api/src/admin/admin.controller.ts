@@ -7,12 +7,14 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Permissions } from '../common/decorators/permissions.decorator';
 import { PERMISSION_CODES } from '../rbac/rbac.constants';
 import { AdminService } from './admin.service';
 import {
   CreateRoleDto,
   UpdateRoleDto,
+  UpdateUserDto,
   UpdateUserRolesDto,
 } from './dto/admin.dto';
 
@@ -49,6 +51,24 @@ export class AdminController {
   @Get('users')
   listUsers() {
     return this.admin.listUsers();
+  }
+
+  @Get('users/:id')
+  getUser(@Param('id') id: string) {
+    return this.admin.getUser(id);
+  }
+
+  @Patch('users/:id')
+  updateUser(@Param('id') id: string, @Body() dto: UpdateUserDto) {
+    return this.admin.updateUser(id, dto);
+  }
+
+  @Delete('users/:id')
+  deleteUser(
+    @Param('id') id: string,
+    @CurrentUser() user: { userId: string },
+  ) {
+    return this.admin.deleteUser(id, user.userId);
   }
 
   @Patch('users/:id/roles')

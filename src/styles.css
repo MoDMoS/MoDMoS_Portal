@@ -470,7 +470,7 @@ a {
 .admin-main {
   position: relative;
   z-index: 1;
-  width: min(60rem, calc(100% - 2rem));
+  width: min(64rem, calc(100% - 2rem));
   margin: 0 auto;
   padding: 2rem 0 3rem;
 }
@@ -485,6 +485,28 @@ a {
 .admin-head p {
   margin: 0.4rem 0 0;
   color: var(--muted);
+}
+
+.admin-head--row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-back {
+  margin: 1rem 0 0;
+}
+
+.admin-back a {
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-back a:hover {
+  color: var(--accent);
 }
 
 .admin-nav {
@@ -524,13 +546,30 @@ a {
 .admin-table td {
   padding: 0.9rem 1rem;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   border-bottom: 1px solid rgba(200, 245, 74, 0.08);
 }
 
 .admin-table th {
   color: var(--muted);
   font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(200, 245, 74, 0.04);
+}
+
+.admin-col-actions {
+  width: 6.5rem;
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.admin-empty {
+  text-align: center !important;
+  color: var(--muted);
+  padding: 2rem 1rem !important;
 }
 
 .admin-user-name {
@@ -538,9 +577,122 @@ a {
 }
 
 .admin-user-email {
-  margin-top: 0.2rem;
   color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.admin-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.4rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-chip--soft {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.admin-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.85rem;
+  color: var(--accent);
+}
+
+.admin-icon-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.admin-icon-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-icon-btn--danger:hover:not(:disabled) {
+  color: #f07178;
+  border-color: rgba(240, 113, 120, 0.35);
+}
+
+.admin-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.admin-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-fieldset legend {
+  margin-bottom: 0.55rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(2, 10, 8, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.admin-modal {
+  width: min(28rem, 100%);
+  max-height: min(90vh, 40rem);
+  overflow: auto;
+  padding: 1.25rem 1.35rem 1.4rem;
+  border-radius: 1rem;
+  border: 1px solid var(--panel-border);
+  background: linear-gradient(160deg, rgba(15, 36, 32, 0.98), rgba(7, 20, 17, 0.96));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.admin-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.admin-modal__head h2 {
+  margin: 0;
+  font-size: 1.2rem;
 }
 
 .admin-check-grid {

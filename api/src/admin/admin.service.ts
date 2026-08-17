@@ -138,13 +138,67 @@ export class AdminService {
       },
     });
 
-    return users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      createdAt: user.createdAt,
-      roles: user.roles.map((ur) => ur.role),
-    }));
+    return users.map((user) => this.mapUser(user));
+  }
+
+  async getUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        roles: {
+          include: {
+            role: { select: { id: true, code: true, name: true } },
+          },
+        },
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+    return this.mapUser(user);
+  }
+
+  async updateUser(
+    userId: string,
+    data: { name?: string; roleIds?: string[] },
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+
+    if (data.roleIds) {
+      await this.replaceUserRoles(userId, data.roleIds);
+    }
+
+    if (data.name !== undefined) {
+      const name = data.name.trim();
+      if (!name) {
+        throw new BadRequestException('ชื่อต้องไม่ว่าง');
+      }
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { name },
+      });
+    }
+
+    return this.getUser(userId);
+  }
+
+  async deleteUser(userId: string, actorId?: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('ไม่พบผู้ใช้');
+    }
+    if (actorId && actorId === userId) {
+      throw new BadRequestException('ไม่สามารถลบบัญชีของตัวเองได้');
+    }
+    await this.prisma.user.delete({ where: { id: userId } });
+    return { ok: true };
   }
 
   async updateUserRoles(userId: string, roleIds: string[]) {
@@ -152,7 +206,27 @@ export class AdminService {
     if (!user) {
       throw new NotFoundException('ไม่พบผู้ใช้');
     }
+    await this.replaceUserRoles(userId, roleIds);
+    return this.getUser(userId);
+  }
 
+  private mapUser(user: {
+    id: string;
+    email: string;
+    name: string;
+    createdAt: Date;
+    roles: Array<{ role: { id: string; code: string; name: string } }>;
+  }) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      createdAt: user.createdAt,
+      roles: user.roles.map((ur) => ur.role),
+    };
+  }
+
+  private async replaceUserRoles(userId: string, roleIds: string[]) {
     const uniqueRoleIds = [...new Set(roleIds)];
     if (uniqueRoleIds.length === 0) {
       throw new BadRequestException('ต้องมีอย่างน้อย 1 role');
@@ -171,8 +245,6 @@ export class AdminService {
         data: uniqueRoleIds.map((roleId) => ({ userId, roleId })),
       }),
     ]);
-
-    return this.listUsers().then((users) => users.find((u) => u.id === userId));
   }
 
   private async getRole(id: string) {

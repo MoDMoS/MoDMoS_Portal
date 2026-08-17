@@ -34,3 +34,16 @@ export class UpdateUserRolesDto {
   @IsString({ each: true })
   roleIds!: string[];
 }
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  name?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsString({ each: true })
+  roleIds?: string[];
+}
