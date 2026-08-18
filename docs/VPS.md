@@ -62,7 +62,7 @@ AUTH_SECRET=your-long-random-secret
 3. Nginx ใช้ `deploy/nginx-portal.conf` (Auth → `:3001`, Discord → `:3000` ผ่าน `/discord-api/`, Gold → `:3002`, ledger → `:8080`)
 4. Gold: ใน `api/.env` ตั้ง `PORT=3002` + `AUTH_SECRET` ตรง Portal แล้ว pm2 restart
 5. Investment: rebuild + `AUTH_SECRET` ตรง Portal
-6. Discord bot: ใน `.env` ใส่ `AUTH_SECRET` เดียวกับ Portal แล้ว restart (pm2/systemd) — แล้ว login ใหม่ที่ Portal เพื่อได้ permission `service:discord`
+6. Discord bot: ใน `.env` ใส่ `AUTH_SECRET` เดียวกับ Portal แล้ว `deploy-modmos discord` (pm2) — แล้ว login ใหม่ที่ Portal เพื่อได้ permission `service:discord`
 
 ### Migrate user เก่าจาก Investment SQLite (ครั้งเดียว)
 
@@ -78,7 +78,7 @@ INVESTMENT_SQLITE_PATH=$HOME/Investment/data/app.db npm run migrate:from-investm
 
 ```bash
 chmod +x ~/MoDMoS_Portal/scripts/deploy-all.sh ~/MoDMoS_Portal/deploy.sh \
-  ~/Investment/deploy.sh ~/Gold_Agent/deploy.sh
+  ~/Investment/deploy.sh ~/Gold_Agent/deploy.sh ~/MoDMoS_Bot_Discord/deploy.sh
 
 # ครั้งแรก — ตั้ง alias
 echo 'alias deploy-modmos="$HOME/MoDMoS_Portal/scripts/deploy-all.sh"' >> ~/.bashrc
@@ -88,10 +88,11 @@ source ~/.bashrc
 จากนั้นทุกครั้งที่อัปเดต:
 
 ```bash
-deploy-modmos                 # pull + build Portal UI/API + Investment + Gold
+deploy-modmos                 # pull + build Portal UI/API + Investment + Gold + Discord bot
 deploy-modmos portal          # Portal UI + Auth API
 deploy-modmos investment      # เฉพาะ Investment (docker)
 deploy-modmos gold            # เฉพาะ Gold
+deploy-modmos discord         # เฉพาะ Discord bot (git pull + slash commands + pm2 restart)
 ```
 
 สคริปต์อยู่ที่ `MoDMoS_Portal/scripts/deploy-all.sh`  
@@ -101,6 +102,8 @@ deploy-modmos gold            # เฉพาะ Gold
 export PORTAL_DIR=$HOME/MoDMoS_Portal
 export INVESTMENT_DIR=$HOME/Investment
 export GOLD_DIR=$HOME/Gold_Agent
+export DISCORD_DIR=$HOME/MoDMoS_Bot_Discord
+export PM2_DISCORD_APP=modmos-discord-bot
 ```
 
 ## ไม่ต้องใส่รหัส sudo ทุกครั้ง

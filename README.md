@@ -56,4 +56,5 @@ INVESTMENT_SQLITE_PATH=../path/to/Investment/backend/prisma/dev.db npm run migra
 ```bash
 ~/MoDMoS_Portal/scripts/deploy-all.sh
 ~/MoDMoS_Portal/scripts/deploy-all.sh portal
+~/MoDMoS_Portal/scripts/deploy-all.sh discord
 ```

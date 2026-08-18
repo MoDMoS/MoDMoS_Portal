@@ -5,6 +5,7 @@
 #   ./deploy-all.sh portal
 #   ./deploy-all.sh investment
 #   ./deploy-all.sh gold
+#   ./deploy-all.sh discord
 #   ./deploy-all.sh portal gold
 
 set -euo pipefail
@@ -12,9 +13,11 @@ set -euo pipefail
 PORTAL_DIR="${PORTAL_DIR:-$HOME/MoDMoS_Portal}"
 INVESTMENT_DIR="${INVESTMENT_DIR:-$HOME/Investment}"
 GOLD_DIR="${GOLD_DIR:-$HOME/Gold_Agent}"
+DISCORD_DIR="${DISCORD_DIR:-$HOME/MoDMoS_Bot_Discord}"
 PORTAL_WWW="${PORTAL_WWW:-/var/www/portal}"
 GOLD_WWW="${GOLD_WWW:-/var/www/gold}"
 PM2_APP="${PM2_APP:-gold-agent-api}"
+PM2_DISCORD_APP="${PM2_DISCORD_APP:-modmos-discord-bot}"
 
 log() { printf '\n==> %s\n' "$*"; }
 
@@ -112,6 +115,72 @@ deploy_gold() {
   publish_www "$GOLD_DIR/web/dist/" "$GOLD_WWW"
 }
 
+resolve_discord_dir() {
+  if [[ -d "$DISCORD_DIR/.git" ]]; then
+    return
+  fi
+  local alt
+  for alt in "$HOME/MoDMoS_Bot_DIscord" "$HOME/MoDMoS_Bot_Discord" "$HOME/MoDMoS_Bot"; do
+    if [[ -d "$alt/.git" ]]; then
+      DISCORD_DIR="$alt"
+      return
+    fi
+  done
+  echo "Discord bot dir not found (set DISCORD_DIR). Tried $DISCORD_DIR" >&2
+  exit 1
+}
+
+pm2_name_for_cwd() {
+  local dir="${1%/}"
+  pm2 jlist 2>/dev/null | node -e '
+    const fs = require("fs");
+    const dir = process.argv[1];
+    let apps = [];
+    try { apps = JSON.parse(fs.readFileSync(0, "utf8")); } catch {}
+    const hit = (Array.isArray(apps) ? apps : []).find(a => {
+      const cwd = String(a.pm2_env && a.pm2_env.pm_cwd || "").replace(/\/$/, "");
+      return cwd === dir;
+    });
+    if (hit && hit.name) process.stdout.write(hit.name);
+  ' "$dir"
+}
+
+deploy_discord() {
+  resolve_discord_dir
+  pull "$DISCORD_DIR"
+  if [[ ! -f "$DISCORD_DIR/.env" ]]; then
+    echo "Missing $DISCORD_DIR/.env" >&2
+    exit 1
+  fi
+
+  log "Install Discord bot deps + register slash commands"
+  (
+    cd "$DISCORD_DIR"
+    npm ci
+    npm run deploy
+  )
+
+  local app_name="$PM2_DISCORD_APP"
+  if ! pm2 describe "$app_name" >/dev/null 2>&1; then
+    local found
+    found="$(pm2_name_for_cwd "$DISCORD_DIR" || true)"
+    if [[ -n "${found:-}" ]]; then
+      app_name="$found"
+    fi
+  fi
+
+  log "Restart Discord bot ($app_name)"
+  if pm2 describe "$app_name" >/dev/null 2>&1; then
+    pm2 restart "$app_name"
+  else
+    (
+      cd "$DISCORD_DIR"
+      pm2 start index.js --name "$app_name"
+      pm2 save
+    )
+  fi
+}
+
 reload_nginx() {
   if [[ -f /etc/nginx/sites-enabled/portal ]] || [[ -f /etc/nginx/sites-available/portal ]]; then
     log "Reload Nginx"
@@ -125,24 +194,29 @@ reload_nginx() {
 }
 
 TARGETS=()
+NEED_NGINX=0
 if [[ $# -eq 0 ]] || [[ "${1:-}" == "all" ]]; then
-  TARGETS=(portal investment gold)
+  TARGETS=(portal investment gold discord)
+  NEED_NGINX=1
 else
   TARGETS=("$@")
 fi
 
 for target in "${TARGETS[@]}"; do
   case "$target" in
-    portal) deploy_portal ;;
-    investment|inv) deploy_investment ;;
-    gold) deploy_gold ;;
+    portal) deploy_portal; NEED_NGINX=1 ;;
+    investment|inv) deploy_investment; NEED_NGINX=1 ;;
+    gold) deploy_gold; NEED_NGINX=1 ;;
+    discord|bot|discord-bot) deploy_discord ;;
     nginx) reload_nginx ;;
     *)
-      echo "Unknown target: $target (use portal | investment | gold | nginx | all)" >&2
+      echo "Unknown target: $target (use portal | investment | gold | discord | nginx | all)" >&2
       exit 1
       ;;
   esac
 done
 
-reload_nginx
+if [[ "$NEED_NGINX" -eq 1 ]]; then
+  reload_nginx
+fi
 log "Done."
