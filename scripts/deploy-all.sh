@@ -94,6 +94,7 @@ deploy_gold() {
     cd "$GOLD_DIR/api"
     npm ci
     npx prisma generate
+    npx prisma migrate deploy
     npm run build
   )
   if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
