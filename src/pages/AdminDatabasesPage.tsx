@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
 import {
   api,
-  hasPermission,
-  portalLoginPath,
   type AdminDatabaseRows,
   type AdminDatabaseSummary,
   type AdminDatabaseTable,
 } from '../api';
-import { useAuth } from '../auth';
-import { AdminShell } from './AdminShell';
+import { AdminShell, useAdminGate } from './AdminShell';
 
 function formatCell(value: unknown) {
   if (value == null) return '—';
@@ -26,19 +22,6 @@ function connectionStatus(entry: AdminDatabaseSummary) {
   if (!entry.configured) return { label: 'ยังไม่ตั้งค่า', tone: 'muted' as const };
   if (entry.connected) return { label: 'เชื่อมต่อแล้ว', tone: 'ok' as const };
   return { label: 'เชื่อมต่อไม่ได้', tone: 'bad' as const };
-}
-
-function useAdminGate(nextPath: string) {
-  const auth = useAuth();
-  const { user, loading } = auth;
-  const allowed = Boolean(user && hasPermission(user, 'admin:access'));
-  let redirect = null;
-  if (!loading && !user) {
-    redirect = <Navigate to={portalLoginPath(nextPath)} replace />;
-  } else if (!loading && user && !allowed) {
-    redirect = <Navigate to="/" replace />;
-  }
-  return { ...auth, allowed, redirect };
 }
 
 export function AdminDatabasesPage() {

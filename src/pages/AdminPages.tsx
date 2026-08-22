@@ -1,23 +1,19 @@
 import {
   FormEvent,
-  type ReactNode,
   useCallback,
   useEffect,
   useId,
   useState,
 } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   api,
-  hasPermission,
-  portalLoginPath,
   type AdminPermission,
   type AdminRole,
   type AdminUser,
 } from '../api';
-import { useAuth } from '../auth';
 import { ConfirmModal } from '../ConfirmModal';
-import { PortalTopBar } from '../PortalTopBar';
+import { AdminShell, useAdminGate } from './AdminShell';
 
 function formatDate(value: string) {
   try {
@@ -52,30 +48,6 @@ function IconTrash({ className }: { className?: string }) {
   );
 }
 
-export function AdminNav({
-  active,
-}: {
-  active: 'users' | 'roles' | 'databases';
-}) {
-  return (
-    <div className="admin-nav">
-      <Link className={active === 'users' ? 'admin-nav__active' : undefined} to="/admin">
-        ผู้ใช้
-      </Link>
-      <Link className={active === 'roles' ? 'admin-nav__active' : undefined} to="/admin/roles">
-        Roles
-      </Link>
-      <Link
-        className={active === 'databases' ? 'admin-nav__active' : undefined}
-        to="/admin/databases"
-      >
-        Databases
-      </Link>
-      <Link to="/">← Portal</Link>
-    </div>
-  );
-}
-
 function RoleBadges({ roles }: { roles: Array<{ id: string; name: string; code: string }> }) {
   if (roles.length === 0) return <span className="admin-muted">—</span>;
   return (
@@ -87,19 +59,6 @@ function RoleBadges({ roles }: { roles: Array<{ id: string; name: string; code: 
       ))}
     </div>
   );
-}
-
-function useAdminGate(nextPath: string) {
-  const auth = useAuth();
-  const { user, loading } = auth;
-  const allowed = Boolean(user && hasPermission(user, 'admin:access'));
-  let redirect: ReactNode = null;
-  if (!loading && !user) {
-    redirect = <Navigate to={portalLoginPath(nextPath)} replace />;
-  } else if (!loading && user && !allowed) {
-    redirect = <Navigate to="/" replace />;
-  }
-  return { ...auth, allowed, redirect };
 }
 
 export function AdminUsersPage() {
@@ -151,18 +110,12 @@ export function AdminUsersPage() {
   }
 
   return (
-    <div className="shell">
-      <div className="atmosphere" aria-hidden="true" />
-      <div className="grid-fade" aria-hidden="true" />
-      <PortalTopBar title="MoDMoS" subtitle="Admin" />
-
-      <main className="admin-main">
-        <div className="admin-head">
-          <h1>ผู้ใช้</h1>
-          <p>ดูรายชื่อ แก้ไขข้อมูล หรือลบบัญชี</p>
-          <AdminNav active="users" />
-        </div>
-
+    <>
+      <AdminShell
+        active="users"
+        title="ผู้ใช้"
+        description="ดูรายชื่อ แก้ไขข้อมูล หรือลบบัญชี"
+      >
         {error ? <p className="form-error">{error}</p> : null}
 
         <div className="admin-table-wrap">
@@ -221,7 +174,7 @@ export function AdminUsersPage() {
             </tbody>
           </table>
         </div>
-      </main>
+      </AdminShell>
 
       <ConfirmModal
         open={Boolean(pendingUser)}
@@ -237,7 +190,7 @@ export function AdminUsersPage() {
         onCancel={() => setPendingUser(null)}
         onConfirm={() => void confirmRemove()}
       />
-    </div>
+    </>
   );
 }
 
@@ -313,77 +266,65 @@ export function AdminUserEditPage() {
   }
 
   return (
-    <div className="shell">
-      <div className="atmosphere" aria-hidden="true" />
-      <div className="grid-fade" aria-hidden="true" />
-      <PortalTopBar title="MoDMoS" subtitle="Admin" />
+    <AdminShell
+      active="users"
+      title="แก้ไขผู้ใช้"
+      description="แก้ชื่อและ roles ได้ — อีเมลและรหัสผ่านแก้ไม่ได้จากหน้านี้"
+    >
+      <p className="admin-back">
+        <Link to="/admin">← กลับรายชื่อผู้ใช้</Link>
+      </p>
 
-      <main className="admin-main">
-        <div className="admin-head">
-          <h1>แก้ไขผู้ใช้</h1>
-          <p>แก้ชื่อและ roles ได้ — อีเมลและรหัสผ่านแก้ไม่ได้จากหน้านี้</p>
-          <AdminNav active="users" />
-        </div>
+      {error ? <p className="form-error">{error}</p> : null}
+      {msg ? <p className="form-success">{msg}</p> : null}
 
-        <p className="admin-back">
-          <Link to="/admin">← กลับรายชื่อผู้ใช้</Link>
-        </p>
-
-        {error ? <p className="form-error">{error}</p> : null}
-        {msg ? <p className="form-success">{msg}</p> : null}
-
-        {loadingUser ? (
-          <p className="admin-muted">กำลังโหลด...</p>
-        ) : target ? (
-          <form className="admin-panel auth-form" onSubmit={onSave}>
-            <label className="field">
-              <span>อีเมล</span>
-              <input className="input" value={target.email} disabled readOnly />
-            </label>
-            <label className="field">
-              <span>ชื่อ</span>
-              <input
-                className="input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </label>
-            <fieldset className="admin-fieldset">
-              <legend>Roles</legend>
-              <div className="admin-check-grid">
-                {roles.map((role) => (
-                  <label key={role.id} className="admin-check">
-                    <input
-                      type="checkbox"
-                      checked={roleIds.includes(role.id)}
-                      onChange={() => toggleRole(role.id)}
-                    />
-                    <span>
-                      {role.name}
-                      <small> ({role.code})</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <p className="admin-muted">สร้างเมื่อ {formatDate(target.createdAt)}</p>
-            <div className="admin-role-actions">
-              <button type="submit" className="btn-primary" disabled={saving}>
-                {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-              </button>
-              <button
-                type="button"
-                className="btn-ghost"
-                onClick={() => navigate('/admin')}
-              >
-                ยกเลิก
-              </button>
+      {loadingUser ? (
+        <p className="admin-muted">กำลังโหลด...</p>
+      ) : target ? (
+        <form className="admin-panel auth-form" onSubmit={onSave}>
+          <label className="field">
+            <span>อีเมล</span>
+            <input className="input" value={target.email} disabled readOnly />
+          </label>
+          <label className="field">
+            <span>ชื่อ</span>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </label>
+          <fieldset className="admin-fieldset">
+            <legend>Roles</legend>
+            <div className="admin-check-grid">
+              {roles.map((role) => (
+                <label key={role.id} className="admin-check">
+                  <input
+                    type="checkbox"
+                    checked={roleIds.includes(role.id)}
+                    onChange={() => toggleRole(role.id)}
+                  />
+                  <span>
+                    {role.name}
+                    <small> ({role.code})</small>
+                  </span>
+                </label>
+              ))}
             </div>
-          </form>
-        ) : null}
-      </main>
-    </div>
+          </fieldset>
+          <p className="admin-muted">สร้างเมื่อ {formatDate(target.createdAt)}</p>
+          <div className="admin-role-actions">
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => navigate('/admin')}>
+              ยกเลิก
+            </button>
+          </div>
+        </form>
+      ) : null}
+    </AdminShell>
   );
 }
 
@@ -518,23 +459,17 @@ export function AdminRolesPage() {
   }
 
   return (
-    <div className="shell">
-      <div className="atmosphere" aria-hidden="true" />
-      <div className="grid-fade" aria-hidden="true" />
-      <PortalTopBar title="MoDMoS" subtitle="Admin" />
-
-      <main className="admin-main">
-        <div className="admin-head admin-head--row">
-          <div>
-            <h1>Roles</h1>
-            <p>กำหนด permission ให้แต่ละ role</p>
-            <AdminNav active="roles" />
-          </div>
+    <>
+      <AdminShell
+        active="roles"
+        title="Roles"
+        description="กำหนด permission ให้แต่ละ role"
+        actions={
           <button type="button" className="btn-primary" onClick={openCreate}>
             เพิ่ม Role
           </button>
-        </div>
-
+        }
+      >
         {error && !modalOpen ? <p className="form-error">{error}</p> : null}
         {msg ? <p className="form-success">{msg}</p> : null}
 
@@ -612,7 +547,7 @@ export function AdminRolesPage() {
             </tbody>
           </table>
         </div>
-      </main>
+      </AdminShell>
 
       {modalOpen ? (
         <div
@@ -710,6 +645,6 @@ export function AdminRolesPage() {
         onCancel={() => setPendingRole(null)}
         onConfirm={() => void confirmRemoveRole()}
       />
-    </div>
+    </>
   );
 }

@@ -1,14 +1,29 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { hasPermission, portalLoginPath } from '../api';
+import { useAuth } from '../auth';
 import { PortalTopBar } from '../PortalTopBar';
 
-type AdminSection = 'users' | 'roles' | 'databases';
+export type AdminSection = 'users' | 'roles' | 'databases';
 
 const NAV: Array<{ id: AdminSection; label: string; to: string }> = [
   { id: 'users', label: 'ผู้ใช้', to: '/admin' },
   { id: 'roles', label: 'Roles', to: '/admin/roles' },
   { id: 'databases', label: 'Databases', to: '/admin/databases' },
 ];
+
+export function useAdminGate(nextPath: string) {
+  const auth = useAuth();
+  const { user, loading } = auth;
+  const allowed = Boolean(user && hasPermission(user, 'admin:access'));
+  let redirect: ReactNode = null;
+  if (!loading && !user) {
+    redirect = <Navigate to={portalLoginPath(nextPath)} replace />;
+  } else if (!loading && user && !allowed) {
+    redirect = <Navigate to="/" replace />;
+  }
+  return { ...auth, allowed, redirect };
+}
 
 export function AdminShell({
   active,
