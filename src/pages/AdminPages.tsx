@@ -112,7 +112,6 @@ export function AdminUsersPage() {
   return (
     <>
       <AdminShell
-        active="users"
         title="ผู้ใช้"
         description="ดูรายชื่อ แก้ไขข้อมูล หรือลบบัญชี"
       >
@@ -267,7 +266,6 @@ export function AdminUserEditPage() {
 
   return (
     <AdminShell
-      active="users"
       title="แก้ไขผู้ใช้"
       description="แก้ชื่อและ roles ได้ — อีเมลและรหัสผ่านแก้ไม่ได้จากหน้านี้"
     >
@@ -461,7 +459,6 @@ export function AdminRolesPage() {
   return (
     <>
       <AdminShell
-        active="roles"
         title="Roles"
         description="กำหนด permission ให้แต่ละ role"
         actions={

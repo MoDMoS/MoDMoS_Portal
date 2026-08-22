@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AppLauncher } from './AppLauncher';
 import { useAuth } from './auth';
 
 export function PortalTopBar({
@@ -9,6 +11,20 @@ export function PortalTopBar({
   subtitle?: string;
 }) {
   const { user, loading, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClick(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  const initial = (user?.name?.trim()?.charAt(0) || '?').toUpperCase();
 
   return (
     <header className="topbar">
@@ -30,15 +46,49 @@ export function PortalTopBar({
           <span className="topbar-muted">กำลังโหลด...</span>
         ) : user ? (
           <div className="topbar-user">
-            <Link className="topbar-name topbar-name-link" to="/profile">
-              {user.name}
-            </Link>
-            <Link className="btn-ghost" to="/profile">
-              โปรไฟล์
-            </Link>
-            <button type="button" className="btn-ghost" onClick={() => void logout()}>
-              ออกจากระบบ
-            </button>
+            <div className="topbar-menu" ref={menuRef}>
+              <button
+                type="button"
+                className="topbar-profile-btn"
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                title="โปรไฟล์"
+                onClick={() => setMenuOpen((prev) => !prev)}
+              >
+                <span className="topbar-avatar">{initial}</span>
+                <span className="topbar-profile-name">{user.name}</span>
+              </button>
+
+              {menuOpen ? (
+                <div className="topbar-dropdown" role="menu">
+                  <div className="topbar-dropdown__head">
+                    <p className="topbar-dropdown__name">{user.name}</p>
+                    <p className="topbar-dropdown__email">{user.email}</p>
+                  </div>
+                  <Link
+                    role="menuitem"
+                    className="topbar-dropdown__item"
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    จัดการโปรไฟล์
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="topbar-dropdown__item topbar-dropdown__item--danger"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void logout();
+                    }}
+                  >
+                    ออกจากระบบ
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            <AppLauncher />
           </div>
         ) : (
           <div className="topbar-user">
@@ -48,6 +98,7 @@ export function PortalTopBar({
             <Link className="btn-primary btn-primary--sm" to="/register">
               สมัครสมาชิก
             </Link>
+            <AppLauncher />
           </div>
         )}
       </div>

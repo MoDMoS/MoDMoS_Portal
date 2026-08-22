@@ -141,7 +141,6 @@ export function AdminDatabasesPage() {
 
   return (
     <AdminShell
-      active="databases"
       title="Databases"
       description="ดูข้อมูลแบบ read-only — เลือก DB และตารางจาก sidebar"
       actions={
