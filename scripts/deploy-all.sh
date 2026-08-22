@@ -93,7 +93,8 @@ deploy_investment() {
   ensure_docker_network
   (
     cd "$INVESTMENT_DIR"
-    docker compose up -d --build
+    docker compose build web --no-cache
+    docker compose up -d
     docker compose ps
   )
   ensure_docker_network
