@@ -21,6 +21,14 @@ PM2_DISCORD_APP="${PM2_DISCORD_APP:-modmos-discord-bot}"
 
 log() { printf '\n==> %s\n' "$*"; }
 
+ensure_docker_network() {
+  if [[ -x "$PORTAL_DIR/scripts/ensure-docker-network.sh" ]]; then
+    "$PORTAL_DIR/scripts/ensure-docker-network.sh"
+  else
+    docker network inspect modmos-db >/dev/null 2>&1 || docker network create modmos-db
+  fi
+}
+
 # Prefer passwordless write when dirs are owned by deploy; fall back to sudo -n.
 run_as_root() {
   if sudo -n true 2>/dev/null; then
@@ -65,6 +73,7 @@ deploy_portal() {
 
   if [[ -f "$PORTAL_DIR/api/docker-compose.yml" ]]; then
     log "Rebuild Portal Auth API (docker)"
+    ensure_docker_network
     (
       cd "$PORTAL_DIR/api"
       if [[ ! -f .env ]]; then
@@ -80,6 +89,7 @@ deploy_portal() {
 deploy_investment() {
   pull "$INVESTMENT_DIR"
   log "Rebuild Investment (docker)"
+  ensure_docker_network
   (
     cd "$INVESTMENT_DIR"
     docker compose up -d --build
@@ -89,6 +99,15 @@ deploy_investment() {
 
 deploy_gold() {
   pull "$GOLD_DIR"
+  if [[ -f "$GOLD_DIR/api/docker/docker-compose.yml" ]]; then
+    log "Start Gold Postgres/Redis (docker)"
+    ensure_docker_network
+    (
+      cd "$GOLD_DIR/api/docker"
+      docker compose up -d
+      docker compose ps
+    )
+  fi
   log "Build Gold API + restart PM2"
   (
     cd "$GOLD_DIR/api"

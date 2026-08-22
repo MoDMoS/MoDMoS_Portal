@@ -1,24 +1,26 @@
 services:
   db:
     image: postgres:16-alpine
+    container_name: portal_postgres
     environment:
       POSTGRES_USER: portal
       POSTGRES_PASSWORD: portal
       POSTGRES_DB: modmos_portal
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - portal_pg:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - modmos-db
 
   api:
     build: .
+    container_name: portal_api
     depends_on:
       - db
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgresql://portal:portal@db:5432/modmos_portal?schema=public
+      DATABASE_URL: postgresql://portal:portal@portal_postgres:5432/modmos_portal?schema=public
       GOLD_DATABASE_URL: ${GOLD_DATABASE_URL:-}
       INVESTMENT_DATABASE_URL: ${INVESTMENT_DATABASE_URL:-}
       DISCORD_DATABASE_URL: ${DISCORD_DATABASE_URL:-}
@@ -33,8 +35,15 @@ services:
       NODE_ENV: production
       PORT: 3001
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     restart: unless-stopped
+    networks:
+      - modmos-db
+
+networks:
+  modmos-db:
+    external: true
+    name: modmos-db
 
 volumes:
   portal_pg:

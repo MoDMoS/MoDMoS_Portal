@@ -32,6 +32,33 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `5434` | Investment Postgres (docker) |
 | `8080` | Investment (docker) |
 
+## Docker network ร่วม (`modmos-db`)
+
+Postgres ทุกตัว + Portal API อยู่บน network **`modmos-db`** เพื่อให้ Admin DB viewer ต่อข้าม container ได้
+
+| Container | Hostname ใน network |
+|-----------|---------------------|
+| Portal Postgres | `portal_postgres:5432` |
+| Gold Postgres | `gold_agent_postgres:5432` |
+| Investment Postgres | `investment_postgres:5432` |
+
+สร้าง network (ครั้งแรก / ก่อน compose):
+
+```bash
+~/MoDMoS_Portal/scripts/ensure-docker-network.sh
+# หรือ: docker network create modmos-db
+```
+
+ใน Portal `api/.env` (Admin → Databases):
+
+```env
+GOLD_DATABASE_URL=postgresql://goldagent:PASSWORD@gold_agent_postgres:5432/gold_agent?schema=public
+INVESTMENT_DATABASE_URL=postgresql://investment:investment@investment_postgres:5432/investment?schema=public
+DISCORD_DATABASE_URL=...   # Neon (cloud)
+```
+
+`deploy-modmos` จะสร้าง network ให้อัตโนมัติ
+
 ## SSO
 
 1. Login ที่ Portal → **Portal API** ออก cookie `access_token` (`Path=/`) พร้อม `roles` / `permissions` / `name`
