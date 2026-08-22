@@ -104,6 +104,9 @@ deploy_gold() {
     ensure_docker_network
     (
       cd "$GOLD_DIR/api/docker"
+      # Fixed container_name can conflict with containers from an older compose project.
+      docker compose down --remove-orphans 2>/dev/null || true
+      docker rm -f gold_agent_redis gold_agent_postgres 2>/dev/null || true
       docker compose up -d
       docker compose ps
     )
