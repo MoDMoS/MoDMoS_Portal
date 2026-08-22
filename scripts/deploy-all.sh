@@ -83,6 +83,7 @@ deploy_portal() {
       docker compose up -d --build
       docker compose ps
     )
+    ensure_docker_network
   fi
 }
 
@@ -95,6 +96,7 @@ deploy_investment() {
     docker compose up -d --build
     docker compose ps
   )
+  ensure_docker_network
 }
 
 deploy_gold() {
@@ -110,6 +112,7 @@ deploy_gold() {
       docker compose up -d
       docker compose ps
     )
+    ensure_docker_network
   fi
   log "Build Gold API + restart PM2"
   (

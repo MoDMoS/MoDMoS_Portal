@@ -5,6 +5,7 @@ import {
   OnModuleDestroy,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { existsSync } from 'node:fs';
 import { Pool } from 'pg';
 
 const DB_SOURCES = [
@@ -15,6 +16,12 @@ const DB_SOURCES = [
 ] as const;
 
 export type DatabaseId = (typeof DB_SOURCES)[number]['id'];
+
+const DOCKER_DB_HOSTS: Partial<Record<DatabaseId, string>> = {
+  portal: 'portal_postgres',
+  gold: 'gold_agent_postgres',
+  investment: 'investment_postgres',
+};
 
 export type DatabaseSummary = {
   id: DatabaseId;
@@ -61,7 +68,25 @@ export class DbViewerService implements OnModuleDestroy {
     const source = DB_SOURCES.find((entry) => entry.id === id);
     if (!source) return undefined;
     const value = this.config.get<string>(source.envKey)?.trim();
-    return value || undefined;
+    if (!value) return undefined;
+    return this.normalizeConnectionString(id, value);
+  }
+
+  private runningInDocker(): boolean {
+    return existsSync('/.dockerenv');
+  }
+
+  /** Portal API in Docker must reach other Postgres containers by name, not 127.0.0.1. */
+  private normalizeConnectionString(id: DatabaseId, raw: string): string {
+    if (!this.runningInDocker()) return raw;
+
+    const host = DOCKER_DB_HOSTS[id];
+    if (!host) return raw;
+
+    return raw.replace(
+      /@(127\.0\.0\.1|localhost)(?::(\d+))?/i,
+      `@${host}:5432`,
+    );
   }
 
   private getPool(id: DatabaseId): Pool | null {
