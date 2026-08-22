@@ -76,17 +76,15 @@ export class DbViewerService implements OnModuleDestroy {
     return existsSync('/.dockerenv');
   }
 
-  /** Portal API in Docker must reach other Postgres containers by name, not 127.0.0.1. */
+  /** Portal API in Docker must reach Postgres on modmos-db by container name (:5432). */
   private normalizeConnectionString(id: DatabaseId, raw: string): string {
     if (!this.runningInDocker()) return raw;
 
     const host = DOCKER_DB_HOSTS[id];
     if (!host) return raw;
 
-    return raw.replace(
-      /@(127\.0\.0\.1|localhost)(?::(\d+))?/i,
-      `@${host}:5432`,
-    );
+    // Rewrite host:port (127.0.0.1, host.docker.internal, etc.) → container:5432
+    return raw.replace(/@([^/?#]+)/, `@${host}:5432`);
   }
 
   private getPool(id: DatabaseId): Pool | null {
