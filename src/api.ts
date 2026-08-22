@@ -28,6 +28,31 @@ export type AdminUser = {
   roles: Array<{ id: string; code: string; name: string }>;
 };
 
+export type AdminDatabaseSummary = {
+  id: string;
+  name: string;
+  configured: boolean;
+  connected: boolean;
+  tableCount: number | null;
+  error: string | null;
+};
+
+export type AdminDatabaseTable = {
+  schema: string;
+  name: string;
+  rowEstimate: number | null;
+};
+
+export type AdminDatabaseRows = {
+  schema: string;
+  table: string;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  page: number;
+  limit: number;
+  total: number | null;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api${path}`, {
     credentials: 'include',

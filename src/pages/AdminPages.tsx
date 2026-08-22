@@ -52,7 +52,11 @@ function IconTrash({ className }: { className?: string }) {
   );
 }
 
-function AdminNav({ active }: { active: 'users' | 'roles' }) {
+export function AdminNav({
+  active,
+}: {
+  active: 'users' | 'roles' | 'databases';
+}) {
   return (
     <div className="admin-nav">
       <Link className={active === 'users' ? 'admin-nav__active' : undefined} to="/admin">
@@ -60,6 +64,12 @@ function AdminNav({ active }: { active: 'users' | 'roles' }) {
       </Link>
       <Link className={active === 'roles' ? 'admin-nav__active' : undefined} to="/admin/roles">
         Roles
+      </Link>
+      <Link
+        className={active === 'databases' ? 'admin-nav__active' : undefined}
+        to="/admin/databases"
+      >
+        Databases
       </Link>
       <Link to="/">← Portal</Link>
     </div>

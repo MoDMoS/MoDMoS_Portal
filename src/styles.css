@@ -796,6 +796,126 @@ a {
   vertical-align: middle;
 }
 
+.db-viewer {
+  display: grid;
+  grid-template-columns: minmax(14rem, 18rem) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.db-viewer__sidebar,
+.db-viewer__panel {
+  border: 1px solid var(--panel-border);
+  border-radius: 1rem;
+  background: linear-gradient(160deg, rgba(15, 36, 32, 0.96), rgba(7, 20, 17, 0.92));
+}
+
+.db-viewer__sidebar {
+  padding: 1rem;
+}
+
+.db-viewer__panel {
+  padding: 1rem 1.1rem 1.2rem;
+  min-width: 0;
+}
+
+.db-viewer__sidebar h2,
+.db-viewer__tables h2,
+.db-viewer__rows h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.db-viewer__db-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.db-viewer__db {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(200, 245, 74, 0.1);
+  background: rgba(4, 12, 10, 0.55);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.db-viewer__db--active {
+  border-color: rgba(200, 245, 74, 0.45);
+  background: rgba(200, 245, 74, 0.08);
+}
+
+.db-viewer__db-name {
+  font-weight: 700;
+}
+
+.db-viewer__db-meta,
+.db-viewer__db-error {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.db-viewer__db-error {
+  color: #f07178;
+}
+
+.db-viewer__table-link {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.db-viewer__table-row--active {
+  background: rgba(200, 245, 74, 0.06);
+}
+
+.db-viewer__rows {
+  margin-top: 1.25rem;
+}
+
+.db-viewer__rows-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.db-viewer__rows-table {
+  max-height: 28rem;
+  overflow: auto;
+}
+
+.db-viewer__cell {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.db-viewer__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .db-viewer {
+    grid-template-columns: 1fr;
+  }
+}
+
 .auth-footer {
   margin: 0.2rem 0 0;
   text-align: center;

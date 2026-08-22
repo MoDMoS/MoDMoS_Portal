@@ -5,6 +5,7 @@ import {
   AdminUserEditPage,
   AdminUsersPage,
 } from './pages/AdminPages';
+import { AdminDatabasesPage } from './pages/AdminDatabasesPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { DiscordPage } from './pages/DiscordPage';
 import { HomePage } from './pages/HomePage';
@@ -23,6 +24,7 @@ export function App() {
           <Route path="/admin" element={<AdminUsersPage />} />
           <Route path="/admin/users/:id" element={<AdminUserEditPage />} />
           <Route path="/admin/roles" element={<AdminRolesPage />} />
+          <Route path="/admin/databases" element={<AdminDatabasesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
