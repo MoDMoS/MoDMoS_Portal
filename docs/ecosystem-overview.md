@@ -75,7 +75,7 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 
 ## 3) Gold_agent
 
-**ทำอะไร:** pipeline เทรดทอง — ดึงราคา Capital → เทียน/อินดิเคเตอร์ → strategy → risk → เปิด/ปิดไม้ (paper หรือ Capital demo) · backtest + gate · ตั้งค่าต่อ user
+**ทำอะไร:** pipeline เทรดทอง — Capital → เทียน/อินดิเคเตอร์ → strategy registry → risk ต่อ user → paper หรือ Capital demo · backtest + gate · หน้า Trade/Backtest/Summary/Settings
 
 | ชั้น | Stack |
 |------|--------|
