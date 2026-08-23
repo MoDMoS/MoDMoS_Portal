@@ -46,7 +46,7 @@ export const services: Service[] = [
   {
     id: 'discord',
     name: 'Discord Bot',
-    description: 'สถานะบอท เซิร์ฟเวอร์ และล็อกล่าสุดบน VPS',
+    description: 'สถานะบอท รายชื่อสมาชิก และล็อกล่าสุดบน VPS',
     href: '/discord',
     available: true,
     permission: 'service:discord',

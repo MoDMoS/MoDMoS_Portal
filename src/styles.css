@@ -1517,6 +1517,85 @@ a {
   color: #f07178;
 }
 
+.discord-roster {
+  margin-top: 2rem;
+}
+
+.discord-roster__head h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.discord-roster__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.discord-roster__filter {
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+}
+
+.discord-roster__filter.is-active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(46, 160, 120, 0.12);
+}
+
+.discord-roster__meta {
+  margin: 0.5rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.discord-roster__table-wrap {
+  overflow: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.9rem;
+  background: rgba(4, 12, 10, 0.55);
+}
+
+.discord-roster__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.discord-roster__table th,
+.discord-roster__table td {
+  text-align: left;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--panel-border);
+  vertical-align: top;
+}
+
+.discord-roster__table th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.discord-roster__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.discord-roster__mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
 .discord-logs {
   margin-top: 2rem;
 }
