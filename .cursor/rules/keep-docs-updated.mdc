@@ -1,0 +1,23 @@
+---
+description: เมื่อแก้โค้ดที่เปลี่ยนพฤติกรรม/สถาปัตยกรรม ต้องอัปเดต docs ในงานเดียวกัน
+alwaysApply: true
+---
+
+# Keep docs updated
+
+เมื่อแก้ไขโค้ดใน repo นี้หรือ sibling MoDMoS repos ให้ทำตามนี้:
+
+1. ถ้าการเปลี่ยนแปลงกระทบ **API, auth/permission, env, DB model, pipeline/cron, UI หลัก, nginx/พอร์ต/deploy** → อัปเดตเอกสารที่เกี่ยวข้องใน commit/งานเดียวกัน
+2. แผนที่ docs หลัก:
+   - ทั้งระบบ: `MoDMoS_Portal/docs/ecosystem-overview.md`
+   - นโยบายเต็ม: `MoDMoS_Portal/docs/KEEP_DOCS_UPDATED.md`
+   - VPS/nginx: `MoDMoS_Portal/docs/VPS.md`
+   - Investment: `Investment/docs/ARCHITECTURE.md`
+   - Gold: `Gold_agent/docs/ARCHITECTURE.md`, `SYSTEM_FLOW.md`, `USER_GUIDE.md`
+   - Discord: `MoDMoS_Bot_Discord/docs/system-overview.md`
+3. อัปเดตเฉพาะส่วนที่เปลี่ยน + แก้วันที่ `อัปเดต: YYYY-MM-DD` ที่หัวไฟล์
+4. env ใหม่ → ใส่ใน `.env.example` (ห้าม commit secret)
+5. ฟีเจอร์ใหญ่ของ Gold → spec ใน `Gold_agent/docs/superpowers/specs/` ตาม workflow เดิม
+6. งาน style-only / rename ภายในที่ไม่เปลี่ยนพฤติกรรม → ไม่บังคับแก้ docs
+
+อย่าจบงานโดยทิ้ง docs ให้ขัดกับโค้ดจริง

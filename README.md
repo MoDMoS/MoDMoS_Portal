@@ -2,6 +2,14 @@
 
 หน้าเลือกบริการ + **Auth/SSO hub** (Portal API เป็นผู้ออก JWT)
 
+## เอกสาร
+
+| ไฟล์ | เนื้อหา |
+|------|---------|
+| [docs/ecosystem-overview.md](./docs/ecosystem-overview.md) | สรุปโครงสร้างทั้ง 4 repo |
+| [docs/KEEP_DOCS_UPDATED.md](./docs/KEEP_DOCS_UPDATED.md) | นโยบายอัปเดต docs เมื่อแก้โค้ด |
+| [docs/VPS.md](./docs/VPS.md) | Deploy / nginx / พอร์ตบน VPS |
+
 ## Dev
 
 ต้องการ:
