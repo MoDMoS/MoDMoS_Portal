@@ -24,7 +24,7 @@ SSO: cookie access_token ← ออกโดย Portal Auth เท่านั�
 | Repo | บทบาท | พอร์ตหลัก (VPS) |
 |------|--------|-----------------|
 | [MoDMoS_Portal](../README.md) | Hub: หน้าแรก, Login/SSO, Admin RBAC, launcher | UI `:80` · API `:3001` · PG `:5433` |
-| [Investment](../../Investment/README.md) | สมุดบัญชีลงทุน (FX / หุ้น / ปันผล / dashboard) | Docker `:8080` · PG `:5434` |
+| [Investment](../../Investment/README.md) | สมุดบัญชีลงทุน (FX / หุ้น / ปันผล / corporate action / snapshot / ภาษี) | Docker `:8080` · PG `:5434` |
 | [Gold_agent](../../Gold_agent/docs/README.md) | เอเจนต์เทรดทอง XAUUSD (Capital + strategy/risk) | API `:3002` · PG `:5432` · UI `/gold/` |
 | [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · Neon cloud |
 
@@ -55,15 +55,15 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 
 ## 2) Investment
 
-**ทำอะไร:** บันทึกการลงทุนส่วนตัว — แลกเงิน, ซื้อขายหุ้นไทย/นอก, ปันผล, cash, snapshot พอร์ต, quotes (Yahoo / SEC)
+**ทำอะไร:** บันทึกการลงทุนส่วนตัว — แลกเงิน, ซื้อขายหุ้นไทย/นอก, ปันผล, corporate action (แตกพาร์/เปลี่ยน ticker), cash, snapshot พอร์ต (รวม cron รายวัน), quotes (Yahoo / SEC), รายงานภาษีรายปี
 
 | ชั้น | Stack |
 |------|--------|
 | UI | Vite, React, Tailwind (`frontend/`) |
-| API | NestJS + Prisma (`backend/`) |
+| API | NestJS + Prisma + Schedule (`backend/`) |
 | DB | PostgreSQL |
 
-**โมเดลหลัก:** `User` (ledger) · `Account` · `FxTransfer` · `Trade` · `Dividend` · `CashEntry` · `PortfolioSnapshot`
+**โมเดลหลัก:** `User` (ledger) · `Account` · `FxTransfer` · `Trade` · `Dividend` · `CashEntry` · `CorporateAction` · `PortfolioSnapshot`
 
 **SSO:** verify cookie + ต้องมี `service:investment` · interceptor สร้าง ledger user ในเครื่อง
 
