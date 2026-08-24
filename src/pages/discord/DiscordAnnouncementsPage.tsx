@@ -9,7 +9,24 @@ import {
   type ScheduleSlot,
 } from './shared';
 
-const EMPTY_SLOTS: ScheduleSlot[] = [{ weekday: 2, time: '21:00' }];
+const DEFAULT_WEEKDAY_FALLBACK = 2; // อังคาร
+
+function getBangkokNowHHmm() {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Bangkok',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const parts = dtf.formatToParts(new Date());
+  const hour = parts.find((p) => p.type === 'hour')?.value ?? '00';
+  const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
+  return `${hour}:${minute}`;
+}
+
+function makeDefaultSlots(): ScheduleSlot[] {
+  return [{ weekday: DEFAULT_WEEKDAY_FALLBACK, time: getBangkokNowHHmm() }];
+}
 
 export function DiscordAnnouncementsPage() {
   const { refreshTick } = useDiscordOutlet();
@@ -20,7 +37,7 @@ export function DiscordAnnouncementsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formChannelId, setFormChannelId] = useState('');
   const [formMessage, setFormMessage] = useState('');
-  const [formSlots, setFormSlots] = useState<ScheduleSlot[]>(EMPTY_SLOTS);
+  const [formSlots, setFormSlots] = useState<ScheduleSlot[]>(() => makeDefaultSlots());
 
   const load = useCallback(async () => {
     setError('');
@@ -46,7 +63,7 @@ export function DiscordAnnouncementsPage() {
   function resetForm(channelFallback?: string) {
     setEditingId(null);
     setFormMessage('');
-    setFormSlots([{ weekday: 2, time: '21:00' }]);
+    setFormSlots(makeDefaultSlots());
     setFormChannelId((prev) => channelFallback || prev || channels[0]?.id || '');
   }
 
@@ -57,7 +74,7 @@ export function DiscordAnnouncementsPage() {
     setFormSlots(
       row.schedules.length
         ? row.schedules.map((s) => ({ weekday: s.weekday, time: s.time }))
-        : [{ weekday: 2, time: '21:00' }],
+        : makeDefaultSlots(),
     );
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -209,7 +226,9 @@ export function DiscordAnnouncementsPage() {
           <button
             type="button"
             className="discord-roster__filter"
-            onClick={() => setFormSlots([...formSlots, { weekday: 4, time: '21:00' }])}
+            onClick={() =>
+              setFormSlots([...formSlots, { weekday: 4, time: getBangkokNowHHmm() }])
+            }
           >
             + เพิ่มวัน/เวลา
           </button>
