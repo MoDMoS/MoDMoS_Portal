@@ -1659,6 +1659,14 @@ a {
   gap: 0.35rem;
 }
 
+.discord-announce__row--editing td {
+  background: rgba(46, 160, 120, 0.08);
+}
+
+.discord-announce__row--editing td {
+  background: rgba(46, 160, 120, 0.08);
+}
+
 .discord-logs {
   margin-top: 2rem;
 }

@@ -105,7 +105,7 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 | DB | Neon Postgres |
 
 **SSO:** Express ตรวจ cookie · `/status` และ `/logs` ต้องการ `service:discord` หรือ `admin:access`  
-**Portal UI:** `/discord` → sidebar (`/announcements` · `/roster` · `/logs`)
+**Portal UI:** `/discord` → sidebar (`/announcements` สร้าง/แก้ไข · `/roster` · `/logs`)
 
 **Docs ใน repo:** [system-overview.md](../../MoDMoS_Bot_Discord/docs/system-overview.md) · [change-name-class.md](../../MoDMoS_Bot_Discord/docs/change-name-class.md)
 

@@ -9,17 +9,18 @@ import {
   type ScheduleSlot,
 } from './shared';
 
+const EMPTY_SLOTS: ScheduleSlot[] = [{ weekday: 2, time: '21:00' }];
+
 export function DiscordAnnouncementsPage() {
   const { refreshTick } = useDiscordOutlet();
   const [channels, setChannels] = useState<ChannelOption[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formChannelId, setFormChannelId] = useState('');
   const [formMessage, setFormMessage] = useState('');
-  const [formSlots, setFormSlots] = useState<ScheduleSlot[]>([
-    { weekday: 2, time: '21:00' },
-  ]);
+  const [formSlots, setFormSlots] = useState<ScheduleSlot[]>(EMPTY_SLOTS);
 
   const load = useCallback(async () => {
     setError('');
@@ -42,26 +43,60 @@ export function DiscordAnnouncementsPage() {
     return () => window.clearInterval(id);
   }, [load, refreshTick]);
 
-  async function createAnnouncement(e: FormEvent) {
+  function resetForm(channelFallback?: string) {
+    setEditingId(null);
+    setFormMessage('');
+    setFormSlots([{ weekday: 2, time: '21:00' }]);
+    setFormChannelId((prev) => channelFallback || prev || channels[0]?.id || '');
+  }
+
+  function startEdit(row: Announcement) {
+    setEditingId(row.id);
+    setFormChannelId(row.channelId);
+    setFormMessage(row.message);
+    setFormSlots(
+      row.schedules.length
+        ? row.schedules.map((s) => ({ weekday: s.weekday, time: s.time }))
+        : [{ weekday: 2, time: '21:00' }],
+    );
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function saveAnnouncement(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError('');
+    const body = {
+      channelId: formChannelId,
+      message: formMessage,
+      schedules: formSlots,
+      enabled: true,
+    };
     try {
-      await fetchJson('/discord-api/announcements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channelId: formChannelId,
-          message: formMessage,
-          schedules: formSlots,
-          enabled: true,
-        }),
-      });
-      setFormMessage('');
-      setFormSlots([{ weekday: 2, time: '21:00' }]);
+      if (editingId != null) {
+        const current = announcements.find((a) => a.id === editingId);
+        await fetchJson(`/discord-api/announcements/${editingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            channelId: formChannelId,
+            message: formMessage,
+            schedules: formSlots,
+            enabled: current?.enabled ?? true,
+          }),
+        });
+        resetForm(formChannelId);
+      } else {
+        await fetchJson('/discord-api/announcements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        resetForm(formChannelId);
+      }
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'สร้างประกาศไม่สำเร็จ');
+      setError(err instanceof Error ? err.message : 'บันทึกประกาศไม่สำเร็จ');
     } finally {
       setBusy(false);
     }
@@ -90,6 +125,7 @@ export function DiscordAnnouncementsPage() {
     setError('');
     try {
       await fetchJson(`/discord-api/announcements/${id}`, { method: 'DELETE' });
+      if (editingId === id) resetForm();
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ลบไม่สำเร็จ');
@@ -100,13 +136,13 @@ export function DiscordAnnouncementsPage() {
 
   return (
     <section className="discord-announce">
-      <h2>ประกาศตามเวลา</h2>
+      <h2>{editingId != null ? `แก้ไขประกาศ #${editingId}` : 'ประกาศตามเวลา'}</h2>
       <p className="discord-logs__hint">
         รายสัปดาห์ · timezone Asia/Bangkok · แชร์ข้อมูลกับปุ่มใน Discord
       </p>
       {error ? <p className="form-error">{error}</p> : null}
 
-      <form className="discord-announce__form" onSubmit={(e) => void createAnnouncement(e)}>
+      <form className="discord-announce__form" onSubmit={(e) => void saveAnnouncement(e)}>
         <label>
           ช่องปลายทาง
           <select
@@ -178,9 +214,21 @@ export function DiscordAnnouncementsPage() {
             + เพิ่มวัน/เวลา
           </button>
         </div>
-        <button type="submit" className="discord-refresh" disabled={busy || !formChannelId}>
-          {busy ? 'กำลังบันทึก…' : 'สร้างประกาศ'}
-        </button>
+        <div className="discord-announce__actions">
+          <button type="submit" className="discord-refresh" disabled={busy || !formChannelId}>
+            {busy ? 'กำลังบันทึก…' : editingId != null ? 'บันทึกการแก้ไข' : 'สร้างประกาศ'}
+          </button>
+          {editingId != null ? (
+            <button
+              type="button"
+              className="discord-roster__filter"
+              disabled={busy}
+              onClick={() => resetForm()}
+            >
+              ยกเลิก
+            </button>
+          ) : null}
+        </div>
       </form>
 
       <div className="discord-roster__table-wrap" style={{ marginTop: '1.25rem' }}>
@@ -203,8 +251,9 @@ export function DiscordAnnouncementsPage() {
             ) : (
               announcements.map((a) => {
                 const chName = channels.find((c) => c.id === a.channelId)?.name;
+                const isEditing = editingId === a.id;
                 return (
-                  <tr key={a.id}>
+                  <tr key={a.id} className={isEditing ? 'discord-announce__row--editing' : undefined}>
                     <td>#{a.id}</td>
                     <td>{chName ? `#${chName}` : a.channelId}</td>
                     <td>{formatSchedules(a.schedules)}</td>
@@ -214,6 +263,14 @@ export function DiscordAnnouncementsPage() {
                     </td>
                     <td>{a.enabled ? 'เปิด' : 'ปิด'}</td>
                     <td className="discord-announce__actions">
+                      <button
+                        type="button"
+                        className="discord-roster__filter"
+                        disabled={busy}
+                        onClick={() => startEdit(a)}
+                      >
+                        {isEditing ? 'กำลังแก้' : 'แก้ไข'}
+                      </button>
                       <button
                         type="button"
                         className="discord-roster__filter"
