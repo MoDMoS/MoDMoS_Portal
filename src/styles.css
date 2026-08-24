@@ -1596,6 +1596,65 @@ a {
   word-break: break-all;
 }
 
+.discord-announce {
+  margin-top: 2rem;
+}
+
+.discord-announce h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.discord-announce__form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+  max-width: 40rem;
+}
+
+.discord-announce__form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.discord-announce__form select,
+.discord-announce__form textarea,
+.discord-announce__form input[type='time'] {
+  font: inherit;
+  color: var(--text);
+  background: rgba(4, 12, 10, 0.85);
+  border: 1px solid var(--panel-border);
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.discord-announce__slots {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.discord-announce__slots > span {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.discord-announce__slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.discord-announce__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .discord-logs {
   margin-top: 2rem;
 }
