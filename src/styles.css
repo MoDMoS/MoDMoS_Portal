@@ -1462,6 +1462,10 @@ a {
   text-underline-offset: 3px;
 }
 
+.discord-page .discord-stats {
+  margin-bottom: 1.5rem;
+}
+
 .discord-refresh {
   margin-left: auto;
   border: 1px solid var(--panel-border);
