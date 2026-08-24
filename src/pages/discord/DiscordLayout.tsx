@@ -153,7 +153,10 @@ export function DiscordLayout() {
                 <button
                   type="button"
                   className="discord-refresh"
-                  onClick={() => requestRefresh()}
+                  onClick={() => {
+                    requestRefresh();
+                    void loadStatus();
+                  }}
                   disabled={refreshing}
                 >
                   {refreshing ? 'กำลังโหลด…' : 'รีเฟรช'}
