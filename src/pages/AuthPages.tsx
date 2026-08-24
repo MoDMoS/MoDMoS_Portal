@@ -89,12 +89,12 @@ export function LoginPage() {
   return (
     <AuthShell title="เข้าสู่ระบบ" subtitle="ใช้บัญชีเดียวสำหรับทุกบริการ MoDMoS">
       <form className="auth-form" onSubmit={onSubmit}>
-        <Field label="อีเมล">
+        <Field label="อีเมลหรือชื่อผู้ใช้">
           <input
             className="input"
-            type="email"
+            type="text"
             required
-            autoComplete="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />

@@ -37,7 +37,7 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 
 ## 1) MoDMoS_Portal
 
-**ทำอะไร:** หน้าแรก + ออก JWT cookie + Admin (users/roles/permissions) + หน้า Discord status + ตัวเลือกดู DB ข้ามบริการ
+**ทำอะไร:** หน้าแรก + ออก JWT cookie + Admin (users/roles/permissions รวมสร้างผู้ใช้ด้วย username) + หน้า Discord status + ตัวเลือกดู DB ข้ามบริการ
 
 | ชั้น | Stack |
 |------|--------|

@@ -3,8 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateRoleDto, UpdateRoleDto } from './dto/admin.dto';
+import { ROLE_CODES } from '../rbac/rbac.constants';
+import { CreateRoleDto, CreateUserDto, UpdateRoleDto } from './dto/admin.dto';
+
+const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
 
 @Injectable()
 export class AdminService {
@@ -128,6 +132,7 @@ export class AdminService {
       select: {
         id: true,
         email: true,
+        username: true,
         name: true,
         createdAt: true,
         roles: {
@@ -147,6 +152,7 @@ export class AdminService {
       select: {
         id: true,
         email: true,
+        username: true,
         name: true,
         createdAt: true,
         roles: {
@@ -162,9 +168,73 @@ export class AdminService {
     return this.mapUser(user);
   }
 
+  async createUser(dto: CreateUserDto) {
+    const username = dto.username.trim().toLowerCase();
+    if (!USERNAME_RE.test(username)) {
+      throw new BadRequestException(
+        'username ต้องยาว 3–32 ตัวอักษร และใช้ได้เฉพาะ a-z, 0-9, . _ -',
+      );
+    }
+
+    const name = dto.name.trim();
+    if (!name) {
+      throw new BadRequestException('ชื่อต้องไม่ว่าง');
+    }
+
+    const emailRaw = dto.email?.trim().toLowerCase();
+    const email = emailRaw || null;
+
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username },
+    });
+    if (existingUsername) {
+      throw new BadRequestException('ชื่อผู้ใช้นี้ถูกใช้แล้ว');
+    }
+
+    if (email) {
+      const existingEmail = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (existingEmail) {
+        throw new BadRequestException('อีเมลนี้ถูกใช้แล้ว');
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = await this.prisma.user.create({
+      data: {
+        username,
+        email,
+        name,
+        passwordHash,
+      },
+    });
+
+    if (dto.roleIds && dto.roleIds.length > 0) {
+      await this.replaceUserRoles(user.id, dto.roleIds);
+    } else {
+      const defaultRole = await this.prisma.role.findUnique({
+        where: { code: ROLE_CODES.USER },
+      });
+      if (!defaultRole) {
+        throw new BadRequestException('ไม่พบ role เริ่มต้น');
+      }
+      await this.prisma.userRole.create({
+        data: { userId: user.id, roleId: defaultRole.id },
+      });
+    }
+
+    return this.getUser(user.id);
+  }
+
   async updateUser(
     userId: string,
-    data: { name?: string; roleIds?: string[] },
+    data: {
+      name?: string;
+      username?: string;
+      email?: string | null;
+      roleIds?: string[];
+    },
   ) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -175,14 +245,60 @@ export class AdminService {
       await this.replaceUserRoles(userId, data.roleIds);
     }
 
+    const patch: {
+      name?: string;
+      username?: string | null;
+      email?: string | null;
+    } = {};
+
     if (data.name !== undefined) {
       const name = data.name.trim();
       if (!name) {
         throw new BadRequestException('ชื่อต้องไม่ว่าง');
       }
+      patch.name = name;
+    }
+
+    if (data.username !== undefined) {
+      const username = data.username.trim().toLowerCase();
+      if (!USERNAME_RE.test(username)) {
+        throw new BadRequestException(
+          'username ต้องยาว 3–32 ตัวอักษร และใช้ได้เฉพาะ a-z, 0-9, . _ -',
+        );
+      }
+      if (username !== user.username) {
+        const taken = await this.prisma.user.findUnique({ where: { username } });
+        if (taken) {
+          throw new BadRequestException('ชื่อผู้ใช้นี้ถูกใช้แล้ว');
+        }
+      }
+      patch.username = username;
+    }
+
+    if (data.email !== undefined) {
+      const emailRaw =
+        data.email == null ? '' : String(data.email).trim().toLowerCase();
+      const email = emailRaw || null;
+      if (email && email !== user.email) {
+        const taken = await this.prisma.user.findUnique({ where: { email } });
+        if (taken) {
+          throw new BadRequestException('อีเมลนี้ถูกใช้แล้ว');
+        }
+      }
+      patch.email = email;
+    }
+
+    const nextUsername =
+      patch.username !== undefined ? patch.username : user.username;
+    const nextEmail = patch.email !== undefined ? patch.email : user.email;
+    if (!nextUsername && !nextEmail) {
+      throw new BadRequestException('ต้องมีอีเมลหรือชื่อผู้ใช้อย่างน้อยหนึ่งอย่าง');
+    }
+
+    if (Object.keys(patch).length > 0) {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { name },
+        data: patch,
       });
     }
 
@@ -212,7 +328,8 @@ export class AdminService {
 
   private mapUser(user: {
     id: string;
-    email: string;
+    email: string | null;
+    username: string | null;
     name: string;
     createdAt: Date;
     roles: Array<{ role: { id: string; code: string; name: string } }>;
@@ -220,6 +337,7 @@ export class AdminService {
     return {
       id: user.id,
       email: user.email,
+      username: user.username,
       name: user.name,
       createdAt: user.createdAt,
       roles: user.roles.map((ur) => ur.role),

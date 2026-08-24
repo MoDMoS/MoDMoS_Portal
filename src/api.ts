@@ -1,6 +1,7 @@
 export type User = {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   name: string;
   roles: string[];
   permissions: string[];
@@ -22,7 +23,8 @@ export type AdminRole = {
 
 export type AdminUser = {
   id: string;
-  email: string;
+  email: string | null;
+  username: string | null;
   name: string;
   createdAt: string;
   roles: Array<{ id: string; code: string; name: string }>;

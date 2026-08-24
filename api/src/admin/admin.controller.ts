@@ -13,6 +13,7 @@ import { PERMISSION_CODES } from '../rbac/rbac.constants';
 import { AdminService } from './admin.service';
 import {
   CreateRoleDto,
+  CreateUserDto,
   UpdateRoleDto,
   UpdateUserDto,
   UpdateUserRolesDto,
@@ -51,6 +52,11 @@ export class AdminController {
   @Get('users')
   listUsers() {
     return this.admin.listUsers();
+  }
+
+  @Post('users')
+  createUser(@Body() dto: CreateUserDto) {
+    return this.admin.createUser(dto);
   }
 
   @Get('users/:id')

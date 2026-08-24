@@ -1,7 +1,9 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
+import { IsString, MinLength } from 'class-validator';
 
+/** `email` field accepts email or username (legacy key name). */
 export class LoginDto {
-  @IsEmail()
+  @IsString()
+  @MinLength(1)
   email!: string;
 
   @IsString()

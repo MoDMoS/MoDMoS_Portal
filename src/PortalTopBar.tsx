@@ -63,7 +63,9 @@ export function PortalTopBar({
                 <div className="topbar-dropdown" role="menu">
                   <div className="topbar-dropdown__head">
                     <p className="topbar-dropdown__name">{user.name}</p>
-                    <p className="topbar-dropdown__email">{user.email}</p>
+                    <p className="topbar-dropdown__email">
+                      {user.username || user.email || '—'}
+                    </p>
                   </div>
                   <Link
                     role="menuitem"

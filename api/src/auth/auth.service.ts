@@ -11,7 +11,7 @@ import { RbacService } from '../rbac/rbac.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
-const INVALID_CREDENTIALS = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+const INVALID_CREDENTIALS = 'อีเมล/ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
 
 @Injectable()
 export class AuthService {
@@ -42,12 +42,16 @@ export class AuthService {
     });
 
     await this.rbac.assignRoleByCode(user.id, ROLE_CODES.USER);
-    return this.issueSession(user.id, user.email, user.name);
+    return this.issueSession(user);
   }
 
   async login(dto: LoginDto) {
-    const email = dto.email.trim().toLowerCase();
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const identifier = dto.email.trim().toLowerCase();
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email: identifier }, { username: identifier }],
+      },
+    });
     if (!user) {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
@@ -57,13 +61,13 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
-    return this.issueSession(user.id, user.email, user.name);
+    return this.issueSession(user);
   }
 
   async me(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, username: true, name: true },
     });
     if (!user) {
       throw new UnauthorizedException();
@@ -75,19 +79,25 @@ export class AuthService {
   async refresh(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        name: true,
+        passwordHash: true,
+      },
     });
     if (!user) {
       throw new UnauthorizedException();
     }
-    return this.issueSession(user.id, user.email, user.name);
+    return this.issueSession(user);
   }
 
   async updateProfile(userId: string, name: string) {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: { name: name.trim() },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, username: true, name: true },
     });
     const claims = await this.rbac.getClaimsForUser(userId);
     return { ...user, ...claims };
@@ -118,18 +128,30 @@ export class AuthService {
     return { ok: true };
   }
 
-  private async issueSession(userId: string, email: string, name: string) {
-    const claims = await this.rbac.getClaimsForUser(userId);
+  private async issueSession(user: {
+    id: string;
+    email: string | null;
+    username?: string | null;
+    name: string;
+  }) {
+    const claims = await this.rbac.getClaimsForUser(user.id);
+    const email = user.email ?? user.username ?? '';
     const token = this.jwt.sign({
-      sub: userId,
+      sub: user.id,
       email,
-      name,
+      name: user.name,
       roles: claims.roles,
       permissions: claims.permissions,
     });
     return {
       token,
-      user: { id: userId, email, name, ...claims },
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username ?? null,
+        name: user.name,
+        ...claims,
+      },
     };
   }
 }

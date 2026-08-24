@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth';
 import {
   AdminRolesPage,
+  AdminUserCreatePage,
   AdminUserEditPage,
   AdminUsersPage,
 } from './pages/AdminPages';
@@ -30,6 +31,7 @@ export function App() {
             <Route path="logs" element={<DiscordLogsPage />} />
           </Route>
           <Route path="/admin" element={<AdminUsersPage />} />
+          <Route path="/admin/users/new" element={<AdminUserCreatePage />} />
           <Route path="/admin/users/:id" element={<AdminUserEditPage />} />
           <Route path="/admin/roles" element={<AdminRolesPage />} />
           <Route path="/admin/databases" element={<AdminDatabasesPage />} />

@@ -11,7 +11,7 @@ function cookieExtractor(req: Request): string | null {
 
 type JwtPayload = {
   sub: string;
-  email: string;
+  email?: string | null;
   name?: string;
   roles?: string[];
   permissions?: string[];
@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   validate(payload: JwtPayload) {
     return {
       userId: payload.sub,
-      email: payload.email,
+      email: typeof payload.email === 'string' ? payload.email : '',
       name: typeof payload.name === 'string' ? payload.name : '',
       roles: Array.isArray(payload.roles) ? payload.roles : [],
       permissions: Array.isArray(payload.permissions)

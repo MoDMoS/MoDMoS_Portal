@@ -113,7 +113,16 @@ export function AdminUsersPage() {
     <>
       <AdminShell
         title="ผู้ใช้"
-        description="ดูรายชื่อ แก้ไขข้อมูล หรือลบบัญชี"
+        description="ดูรายชื่อ เพิ่ม แก้ไข หรือลบบัญชี"
+        actions={
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => navigate('/admin/users/new')}
+          >
+            เพิ่มผู้ใช้
+          </button>
+        }
       >
         {error ? <p className="form-error">{error}</p> : null}
 
@@ -122,6 +131,7 @@ export function AdminUsersPage() {
             <thead>
               <tr>
                 <th>ชื่อ</th>
+                <th>Username</th>
                 <th>อีเมล</th>
                 <th>Roles</th>
                 <th>สร้างเมื่อ</th>
@@ -131,7 +141,7 @@ export function AdminUsersPage() {
             <tbody>
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="admin-empty">
+                  <td colSpan={6} className="admin-empty">
                     ยังไม่มีผู้ใช้
                   </td>
                 </tr>
@@ -139,7 +149,8 @@ export function AdminUsersPage() {
                 users.map((row) => (
                   <tr key={row.id}>
                     <td className="admin-user-name">{row.name}</td>
-                    <td className="admin-user-email">{row.email}</td>
+                    <td className="admin-user-email">{row.username ?? '—'}</td>
+                    <td className="admin-user-email">{row.email ?? '—'}</td>
                     <td>
                       <RoleBadges roles={row.roles} />
                     </td>
@@ -180,7 +191,7 @@ export function AdminUsersPage() {
         title="ลบผู้ใช้"
         message={
           pendingUser
-            ? `ลบผู้ใช้ ${pendingUser.name} (${pendingUser.email})? การกระทำนี้ย้อนกลับไม่ได้`
+            ? `ลบผู้ใช้ ${pendingUser.name} (${pendingUser.username || pendingUser.email || pendingUser.id})? การกระทำนี้ย้อนกลับไม่ได้`
             : ''
         }
         confirmLabel="ลบ"
@@ -193,6 +204,175 @@ export function AdminUsersPage() {
   );
 }
 
+export function AdminUserCreatePage() {
+  const { allowed, redirect } = useAdminGate('/admin/users/new');
+  const navigate = useNavigate();
+
+  const [roles, setRoles] = useState<AdminRole[]>([]);
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [roleIds, setRoleIds] = useState<string[]>([]);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(true);
+
+  const loadRoles = useCallback(async () => {
+    setError('');
+    setLoadingRoles(true);
+    try {
+      const nextRoles = await api.get<AdminRole[]>('/admin/roles');
+      setRoles(nextRoles);
+      const defaultUser = nextRoles.find((r) => r.code === 'user');
+      if (defaultUser) setRoleIds([defaultUser.id]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'โหลด roles ไม่สำเร็จ');
+    } finally {
+      setLoadingRoles(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (allowed) void loadRoles();
+  }, [allowed, loadRoles]);
+
+  if (redirect) return redirect;
+
+  function toggleRole(roleId: string) {
+    setRoleIds((prev) =>
+      prev.includes(roleId) ? prev.filter((x) => x !== roleId) : [...prev, roleId],
+    );
+  }
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (password !== confirmPassword) {
+      setError('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const created = await api.post<AdminUser>('/admin/users', {
+        username,
+        name,
+        password,
+        email: email.trim() || undefined,
+        roleIds: roleIds.length > 0 ? roleIds : undefined,
+      });
+      navigate(`/admin/users/${created.id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'สร้างผู้ใช้ไม่สำเร็จ');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <AdminShell
+      title="เพิ่มผู้ใช้"
+      description="สร้างบัญชีด้วย username (บังคับ) — อีเมลใส่ได้ถ้ามี"
+    >
+      <p className="admin-back">
+        <Link to="/admin">← กลับรายชื่อผู้ใช้</Link>
+      </p>
+
+      {error ? <p className="form-error">{error}</p> : null}
+
+      {loadingRoles ? (
+        <p className="admin-muted">กำลังโหลด...</p>
+      ) : (
+        <form className="admin-panel auth-form" onSubmit={onSubmit}>
+          <label className="field">
+            <span>Username</span>
+            <input
+              className="input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              minLength={3}
+              autoComplete="off"
+              pattern="[A-Za-z0-9._-]+"
+              title="a-z, 0-9, . _ -"
+            />
+          </label>
+          <label className="field">
+            <span>ชื่อ</span>
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </label>
+          <label className="field">
+            <span>อีเมล (ไม่บังคับ)</span>
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="off"
+            />
+          </label>
+          <label className="field">
+            <span>รหัสผ่าน</span>
+            <input
+              className="input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </label>
+          <label className="field">
+            <span>ยืนยันรหัสผ่าน</span>
+            <input
+              className="input"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </label>
+          <fieldset className="admin-fieldset">
+            <legend>Roles</legend>
+            <div className="admin-check-grid">
+              {roles.map((role) => (
+                <label key={role.id} className="admin-check">
+                  <input
+                    type="checkbox"
+                    checked={roleIds.includes(role.id)}
+                    onChange={() => toggleRole(role.id)}
+                  />
+                  <span>
+                    {role.name}
+                    <small> ({role.code})</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className="admin-role-actions">
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? 'กำลังสร้าง...' : 'สร้างผู้ใช้'}
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => navigate('/admin')}>
+              ยกเลิก
+            </button>
+          </div>
+        </form>
+      )}
+    </AdminShell>
+  );
+}
+
 export function AdminUserEditPage() {
   const { id = '' } = useParams();
   const { user, refresh, allowed, redirect } = useAdminGate(`/admin/users/${id}`);
@@ -201,6 +381,8 @@ export function AdminUserEditPage() {
   const [target, setTarget] = useState<AdminUser | null>(null);
   const [roles, setRoles] = useState<AdminRole[]>([]);
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [roleIds, setRoleIds] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -219,6 +401,8 @@ export function AdminUserEditPage() {
       setTarget(nextUser);
       setRoles(nextRoles);
       setName(nextUser.name);
+      setUsername(nextUser.username ?? '');
+      setEmail(nextUser.email ?? '');
       setRoleIds(nextUser.roles.map((r) => r.id));
     } catch (err) {
       setTarget(null);
@@ -243,15 +427,23 @@ export function AdminUserEditPage() {
   async function onSave(event: FormEvent) {
     event.preventDefault();
     if (!id) return;
+    if (!username.trim() && !email.trim()) {
+      setError('ต้องมีอีเมลหรือชื่อผู้ใช้อย่างน้อยหนึ่งอย่าง');
+      return;
+    }
     setSaving(true);
     setError('');
     setMsg('');
     try {
       const updated = await api.patch<AdminUser>(`/admin/users/${id}`, {
         name,
+        username: username.trim() || undefined,
+        email: email.trim() || null,
         roleIds,
       });
       setTarget(updated);
+      setUsername(updated.username ?? '');
+      setEmail(updated.email ?? '');
       setMsg('บันทึกแล้ว');
       if (id === user?.id) {
         await api.post('/auth/refresh');
@@ -267,7 +459,7 @@ export function AdminUserEditPage() {
   return (
     <AdminShell
       title="แก้ไขผู้ใช้"
-      description="แก้ชื่อและ roles ได้ — อีเมลและรหัสผ่านแก้ไม่ได้จากหน้านี้"
+      description="แก้ชื่อ username อีเมล และ roles — รหัสผ่านแก้ไม่ได้จากหน้านี้"
     >
       <p className="admin-back">
         <Link to="/admin">← กลับรายชื่อผู้ใช้</Link>
@@ -281,8 +473,24 @@ export function AdminUserEditPage() {
       ) : target ? (
         <form className="admin-panel auth-form" onSubmit={onSave}>
           <label className="field">
+            <span>Username</span>
+            <input
+              className="input"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              minLength={3}
+              pattern="[A-Za-z0-9._-]+"
+              title="a-z, 0-9, . _ -"
+            />
+          </label>
+          <label className="field">
             <span>อีเมล</span>
-            <input className="input" value={target.email} disabled readOnly />
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </label>
           <label className="field">
             <span>ชื่อ</span>

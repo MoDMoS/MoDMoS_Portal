@@ -86,8 +86,20 @@ export function ProfilePage() {
             <form className="auth-card profile-card" onSubmit={saveProfile}>
               <h2>ข้อมูลบัญชี</h2>
               <label className="field">
+                <span>ชื่อผู้ใช้</span>
+                <input
+                  className="input"
+                  value={user.username ?? '—'}
+                  disabled
+                />
+              </label>
+              <label className="field">
                 <span>อีเมล</span>
-                <input className="input" value={user.email} disabled />
+                <input
+                  className="input"
+                  value={user.email ?? '—'}
+                  disabled
+                />
               </label>
               <label className="field">
                 <span>ชื่อที่แสดง</span>
