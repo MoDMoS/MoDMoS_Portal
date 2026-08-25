@@ -75,10 +75,10 @@ function ServiceCard({
 export function HomePage() {
   const { user, loading } = useAuth();
   const authLocked = !loading && !user;
-  const visibleServices = services.filter(
-    (service) =>
-      service.id !== 'admin' || hasPermission(user, 'admin:access'),
-  );
+  const visibleServices = services.filter((service) => {
+    if (!user) return service.id !== 'admin';
+    return hasPermission(user, service.permission);
+  });
 
   return (
     <div className="shell">
