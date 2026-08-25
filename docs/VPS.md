@@ -1,9 +1,7 @@
 # Deploy MoDMoS Portal บน VPS
 
-อัปเดต: 2026-08-26
-
 Portal อยู่ที่พอร์ต **80** เป็นหน้าแรก + **Auth/SSO hub**  
-Portal API (Postgres) ออก JWT — Investment, Gold และ TripPlanner แค่ verify cookie
+Portal API (Postgres) ออก JWT — Investment และ Gold แค่ verify cookie
 
 ## โครง URL
 
@@ -16,12 +14,9 @@ Portal API (Postgres) ออก JWT — Investment, Gold และ TripPlanner �
 | `/api/` (ledger) | Investment API ผ่าน Docker `:8080` |
 | `/gold/` | Gold Agent static |
 | `/market` `/indicator` `/strategy` | Gold API `127.0.0.1:3002` |
-| `/trip/` | TripPlanner static |
-| `/trip-api/` | TripPlanner API `127.0.0.1:3003` |
 | `/discord` | Portal UI — สถานะ Discord Bot |
 | `/discord-api/` | Discord bot Express `127.0.0.1:3000` |
 | Postgres Portal Auth | `127.0.0.1:5433` |
-| Postgres TripPlanner | ฐาน `tripplanner` บน `127.0.0.1:5433` |
 | Postgres Gold | `127.0.0.1:5432` |
 | Postgres Investment | `127.0.0.1:5434` |
 
@@ -32,7 +27,6 @@ Portal API (Postgres) ออก JWT — Investment, Gold และ TripPlanner �
 | `3000` | MoDMoS Discord bot (คงไว้) |
 | `3001` | Portal Auth API |
 | `3002` | Gold Agent API |
-| `3003` | TripPlanner API |
 | `5432` | Gold Postgres (docker) |
 | `5433` | Portal Auth Postgres (docker) |
 | `5434` | Investment Postgres (docker) |
@@ -68,8 +62,8 @@ DISCORD_DATABASE_URL=...   # Neon (cloud)
 ## SSO
 
 1. Login ที่ Portal → **Portal API** ออก cookie `access_token` (`Path=/`) พร้อม `roles` / `permissions` / `name`
-2. Investment / Gold / TripPlanner verify cookie เดียวกัน และตรวจสิทธิ์ service จาก `permissions`
-3. `AUTH_SECRET` ของ **Portal API**, **Investment**, **Gold API**, **TripPlanner API**, และ **Discord bot** ต้องตรงกัน
+2. Investment / Gold verify cookie เดียวกัน และตรวจสิทธิ์ service จาก `permissions`
+3. `AUTH_SECRET` ของ **Portal API**, **Investment**, **Gold API**, และ **Discord bot** ต้องตรงกัน
 4. Admin UI ที่ Portal `/admin` (ต้องมี `admin:access`)
 5. Discord status ที่ `/discord` ต้องมี `service:discord` (admin ได้ทุกสิทธิ์อัตโนมัติ; ล็อกต้องมี `admin:access`)
 6. Default admin ตั้งใน Portal `api/.env`:
@@ -87,9 +81,6 @@ DATABASE_URL=postgresql://portal:portal@localhost:5433/modmos_portal?schema=publ
 # Investment + Gold — AUTH_SECRET ค่าเดียวกัน
 AUTH_SECRET=your-long-random-secret
 
-# TripPlanner API ใช้ฐานแยกบน Portal PostgreSQL cluster
-DATABASE_URL=postgresql://portal:PASSWORD@127.0.0.1:5433/tripplanner?schema=public
-AUTH_SECRET=your-long-random-secret
 ```
 
 ## ขั้นตอนสั้นๆ
