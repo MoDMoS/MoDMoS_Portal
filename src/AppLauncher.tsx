@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { hasPermission, portalLoginPath } from './api';
+import { hasPermission } from './api';
 import { useAuth } from './auth';
 import { services } from './services';
 
@@ -21,7 +21,7 @@ export function AppsIcon({ className }: { className?: string }) {
 }
 
 export function AppLauncher() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -35,11 +35,13 @@ export function AppLauncher() {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const authLocked = !loading && !user;
-  const visibleServices = services.filter((service) => {
-    if (!user) return service.id !== 'admin';
-    return hasPermission(user, service.permission);
-  });
+  const visibleServices = services.filter(
+    (service) =>
+      Boolean(user) &&
+      service.available &&
+      Boolean(service.href) &&
+      hasPermission(user, service.permission),
+  );
 
   return (
     <div className="app-launcher" ref={rootRef}>
@@ -57,66 +59,35 @@ export function AppLauncher() {
       {open ? (
         <div className="app-launcher__panel" role="menu">
           <p className="app-launcher__title">บริการ MoDMoS</p>
-          <ul className="app-launcher__grid">
-            {visibleServices.map((service) => {
-              const permissionLocked =
-                !authLocked && !hasPermission(user, service.permission);
-              const locked = !service.available || authLocked || permissionLocked;
-
-              let content = (
-                <>
-                  <span className="app-launcher__name">{service.name}</span>
-                  <span className="app-launcher__desc">{service.description}</span>
-                </>
-              );
-
-              if (service.available && service.href && !locked) {
-                return (
-                  <li key={service.id}>
-                    {service.internal ? (
-                      <Link
-                        className="app-launcher__item app-launcher__item--live"
-                        to={service.href}
-                        onClick={() => setOpen(false)}
-                      >
-                        {content}
-                      </Link>
-                    ) : (
-                      <a
-                        className="app-launcher__item app-launcher__item--live"
-                        href={service.href}
-                        onClick={() => setOpen(false)}
-                      >
-                        {content}
-                      </a>
-                    )}
-                  </li>
-                );
-              }
-
-              if (service.available && authLocked && service.href) {
-                return (
-                  <li key={service.id}>
+          {visibleServices.length === 0 ? (
+            <p className="app-launcher__desc">ไม่มีบริการที่เข้าถึงได้</p>
+          ) : (
+            <ul className="app-launcher__grid">
+              {visibleServices.map((service) => (
+                <li key={service.id}>
+                  {service.internal ? (
                     <Link
-                      className="app-launcher__item"
-                      to={portalLoginPath(service.href)}
+                      className="app-launcher__item app-launcher__item--live"
+                      to={service.href!}
                       onClick={() => setOpen(false)}
                     >
-                      {content}
+                      <span className="app-launcher__name">{service.name}</span>
+                      <span className="app-launcher__desc">{service.description}</span>
                     </Link>
-                  </li>
-                );
-              }
-
-              return (
-                <li key={service.id}>
-                  <div className="app-launcher__item app-launcher__item--disabled" aria-disabled="true">
-                    {content}
-                  </div>
+                  ) : (
+                    <a
+                      className="app-launcher__item app-launcher__item--live"
+                      href={service.href}
+                      onClick={() => setOpen(false)}
+                    >
+                      <span className="app-launcher__name">{service.name}</span>
+                      <span className="app-launcher__desc">{service.description}</span>
+                    </a>
+                  )}
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          )}
           <Link className="app-launcher__home" to="/" onClick={() => setOpen(false)}>
             หน้า Portal หลัก
           </Link>

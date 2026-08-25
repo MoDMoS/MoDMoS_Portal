@@ -14,9 +14,9 @@ function url(value: string | undefined): string | undefined {
   return trimmed || undefined;
 }
 
-const investmentUrl = url(import.meta.env.VITE_INVESTMENT_URL);
-const goldAgentUrl = url(import.meta.env.VITE_GOLD_AGENT_URL);
-const tripPlannerUrl = url(import.meta.env.VITE_TRIP_PLANNER_URL);
+const investmentUrl = url(import.meta.env.VITE_INVESTMENT_URL) ?? '/Investment/';
+const goldAgentUrl = url(import.meta.env.VITE_GOLD_AGENT_URL) ?? '/gold/';
+const tripPlannerUrl = url(import.meta.env.VITE_TRIP_PLANNER_URL) ?? '/trip/';
 
 export const services: Service[] = [
   {
@@ -33,7 +33,7 @@ export const services: Service[] = [
     name: 'บันทึกการลงทุน',
     description: 'แลกเงิน ซื้อขายหุ้นไทย/นอก ปันผล และภาพรวมพอร์ต',
     href: investmentUrl,
-    available: Boolean(investmentUrl),
+    available: true,
     permission: 'service:investment',
   },
   {
@@ -41,7 +41,7 @@ export const services: Service[] = [
     name: 'Gold Agent',
     description: 'ราคาทองคำ สัญญาณเทรด และกราฟแท่งเทียน',
     href: goldAgentUrl,
-    available: Boolean(goldAgentUrl),
+    available: true,
     permission: 'service:gold-agent',
   },
   {
@@ -49,7 +49,7 @@ export const services: Service[] = [
     name: 'Trip Planner',
     description: 'วางแผนทริปหลายวัน ส่งออก Word',
     href: tripPlannerUrl,
-    available: Boolean(tripPlannerUrl),
+    available: true,
     permission: 'service:trip-planner',
   },
   {
