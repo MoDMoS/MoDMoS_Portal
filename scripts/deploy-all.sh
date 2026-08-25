@@ -116,15 +116,25 @@ deploy_gold() {
     ensure_docker_network
   fi
   log "Build Gold API + restart PM2"
+  # Stop first: nest build uses deleteOutDir, so a live PM2 process can crash-loop
+  # with MODULE_NOT_FOUND while dist/ is empty mid-build.
+  if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
+    pm2 stop "$PM2_APP" >/dev/null 2>&1 || true
+  fi
   (
     cd "$GOLD_DIR/api"
     npm ci
     npx prisma generate
     npx prisma migrate deploy
     npm run build
+    if [[ ! -f dist/main.js ]]; then
+      echo "ERROR: $GOLD_DIR/api/dist/main.js missing after nest build" >&2
+      ls -la dist 2>&1 || true
+      exit 1
+    fi
   )
   if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
-    pm2 restart "$PM2_APP"
+    pm2 restart "$PM2_APP" --update-env
   else
     (
       cd "$GOLD_DIR/api"
