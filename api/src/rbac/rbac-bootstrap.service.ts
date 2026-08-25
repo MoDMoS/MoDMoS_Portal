@@ -74,6 +74,7 @@ export class RbacBootstrapService implements OnModuleInit {
     const userPermissionCodes = [
       PERMISSION_CODES.SERVICE_INVESTMENT,
       PERMISSION_CODES.SERVICE_GOLD_AGENT,
+      PERMISSION_CODES.SERVICE_TRIP_PLANNER,
     ];
     for (const code of userPermissionCodes) {
       const permission = byCode.get(code);

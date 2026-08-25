@@ -1,8 +1,8 @@
 # MoDMoS Ecosystem — สรุปโครงสร้างทุก Repo
 
-อัปเดต: 2026-08-24
+อัปเดต: 2026-08-26
 
-เอกสารนี้เป็น **แผนที่ระบบรวม** ของโปรเจกต์ MoDMoS ทั้ง 4 repo  
+เอกสารนี้เป็น **แผนที่ระบบรวม** ของโปรเจกต์ MoDMoS ทั้ง 5 repo  
 รายละเอียดเชิงลึกอยู่ที่ docs ในแต่ละ repo (ดูลิงก์ท้ายเอกสาร)
 
 ---
@@ -15,10 +15,12 @@ Browser
        ├─ /                 → Portal SPA + Auth API :3001
        ├─ /Investment/ + /api/ (ledger) → Investment :8080
        ├─ /gold/ + /market|indicator|strategy|risk|execution|… → Gold :3002
+       ├─ /trip/ + /trip-api/ → TripPlanner :3003
        └─ /discord-api/     → Discord bot Express :3000
 
 SSO: cookie access_token ← ออกโดย Portal Auth เท่านั้น
 ภายนอก: Capital.com ← Gold | Yahoo/SEC ← Investment | Discord+Neon ← Bot
+         Photon/Nominatim/OSRM ← TripPlanner (zero paid API)
 ```
 
 | Repo | บทบาท | พอร์ตหลัก (VPS) |
@@ -27,8 +29,9 @@ SSO: cookie access_token ← ออกโดย Portal Auth เท่านั�
 | [Investment](../../Investment/README.md) | สมุดบัญชีลงทุน (FX / หุ้น / ปันผล / corporate action / snapshot / ภาษี) | Docker `:8080` · PG `:5434` |
 | [Gold_agent](../../Gold_agent/docs/README.md) | เอเจนต์เทรดทอง XAUUSD (Capital + strategy/risk) | API `:3002` · PG `:5432` · UI `/gold/` |
 | [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · Neon cloud |
+| [TripPlanner](../../TripPlanner/README.md) | วางแผนทริปหลายวันด้วยแผนที่และ routing แบบ zero-paid-API | API `:3003` · PG cluster `:5433` · UI `/trip/` |
 
-สิทธิ์ SSO ที่ใช้ร่วมกัน: `service:investment` · `service:gold-agent` · `service:discord` · `admin:access`  
+สิทธิ์ SSO ที่ใช้ร่วมกัน: `service:investment` · `service:gold-agent` · `service:discord` · `service:trip-planner` · `admin:access`  
 `AUTH_SECRET` ต้องตรงกันทุกบริการที่ verify cookie
 
 Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
@@ -111,17 +114,33 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 
 ---
 
+## 5) TripPlanner
+
+**ทำอะไร:** สร้างแผนทริปหลายวัน จัดสถานที่ตามวัน คำนวณเส้นทาง และ export โดยไม่ใช้ paid API
+
+| ชั้น | Stack |
+|------|--------|
+| UI | React + Vite + Tailwind (`web/`) |
+| API | NestJS + Prisma (`api/`) |
+| DB | ฐาน `tripplanner` บน Portal PostgreSQL cluster |
+
+**SSO:** verify cookie ด้วย `AUTH_SECRET` ร่วม + ต้องมี `service:trip-planner`; local `User.id` เท่ากับ JWT `sub`
+
+**Docs ใน repo:** [README](../../TripPlanner/README.md) · [ARCHITECTURE.md](../../TripPlanner/docs/ARCHITECTURE.md)
+
+---
+
 ## ความสัมพันธ์ข้าม Repo
 
 | จาก → ถึง | ความสัมพันธ์ |
 |-----------|----------------|
-| Portal → Investment / Gold / Discord | nginx proxy + ลิงก์ launcher + (optional) อ่าน DB ใน Admin viewer |
-| Investment / Gold / Discord → Portal | verify JWT เท่านั้น — ไม่เรียก business API ของกันและกัน |
+| Portal → Investment / Gold / Discord / TripPlanner | nginx proxy + ลิงก์ launcher + (optional) อ่าน DB ใน Admin viewer |
+| Investment / Gold / Discord / TripPlanner → Portal | verify JWT เท่านั้น — ไม่เรียก business API ของกันและกัน |
 | Gold → Capital.com | ราคา + ออเดอร์ demo |
 | Investment → Yahoo / SEC | quotes / NAV |
 | Discord → Discord Gateway + Neon | รันบอท |
 
-Deploy รวม: `MoDMoS_Portal/scripts/deploy-all.sh` (`portal` \| `investment` \| `gold` \| `discord`)
+Deploy รวม: `MoDMoS_Portal/scripts/deploy-all.sh` (`portal` \| `investment` \| `gold` \| `discord` \| `tripplanner`)
 
 ---
 

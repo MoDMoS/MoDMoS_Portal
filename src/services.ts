@@ -16,6 +16,7 @@ function url(value: string | undefined): string | undefined {
 
 const investmentUrl = url(import.meta.env.VITE_INVESTMENT_URL);
 const goldAgentUrl = url(import.meta.env.VITE_GOLD_AGENT_URL);
+const tripPlannerUrl = url(import.meta.env.VITE_TRIP_PLANNER_URL);
 
 export const services: Service[] = [
   {
@@ -42,6 +43,14 @@ export const services: Service[] = [
     href: goldAgentUrl,
     available: Boolean(goldAgentUrl),
     permission: 'service:gold-agent',
+  },
+  {
+    id: 'trip-planner',
+    name: 'Trip Planner',
+    description: 'วางแผนทริปหลายวัน ส่งออก Word',
+    href: tripPlannerUrl,
+    available: Boolean(tripPlannerUrl),
+    permission: 'service:trip-planner',
   },
   {
     id: 'discord',

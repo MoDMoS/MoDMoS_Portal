@@ -6,6 +6,7 @@
 #   ./deploy-all.sh investment
 #   ./deploy-all.sh gold
 #   ./deploy-all.sh discord
+#   ./deploy-all.sh tripplanner
 #   ./deploy-all.sh portal gold
 
 set -euo pipefail
@@ -14,10 +15,13 @@ PORTAL_DIR="${PORTAL_DIR:-$HOME/MoDMoS_Portal}"
 INVESTMENT_DIR="${INVESTMENT_DIR:-$HOME/Investment}"
 GOLD_DIR="${GOLD_DIR:-$HOME/Gold_Agent}"
 DISCORD_DIR="${DISCORD_DIR:-$HOME/MoDMoS_Bot_Discord}"
+TRIPPLANNER_DIR="${TRIPPLANNER_DIR:-$HOME/TripPlanner}"
 PORTAL_WWW="${PORTAL_WWW:-/var/www/portal}"
 GOLD_WWW="${GOLD_WWW:-/var/www/gold}"
+TRIP_WWW="${TRIP_WWW:-/var/www/trip}"
 PM2_APP="${PM2_APP:-gold-agent-api}"
 PM2_DISCORD_APP="${PM2_DISCORD_APP:-modmos-discord-bot}"
+PM2_TRIP_APP="${PM2_TRIP_APP:-tripplanner-api}"
 
 log() { printf '\n==> %s\n' "$*"; }
 
@@ -152,6 +156,43 @@ deploy_gold() {
   publish_www "$GOLD_DIR/web/dist/" "$GOLD_WWW"
 }
 
+deploy_tripplanner() {
+  pull "$TRIPPLANNER_DIR"
+  log "Build TripPlanner API + restart PM2"
+  if pm2 describe "$PM2_TRIP_APP" >/dev/null 2>&1; then
+    pm2 stop "$PM2_TRIP_APP" >/dev/null 2>&1 || true
+  fi
+  (
+    cd "$TRIPPLANNER_DIR/api"
+    npm ci
+    npx prisma generate
+    npx prisma migrate deploy
+    npm run build
+    if [[ ! -f dist/main.js ]]; then
+      echo "ERROR: $TRIPPLANNER_DIR/api/dist/main.js missing after nest build" >&2
+      ls -la dist 2>&1 || true
+      exit 1
+    fi
+  )
+  if pm2 describe "$PM2_TRIP_APP" >/dev/null 2>&1; then
+    pm2 restart "$PM2_TRIP_APP" --update-env
+  else
+    (
+      cd "$TRIPPLANNER_DIR/api"
+      pm2 start dist/main.js --name "$PM2_TRIP_APP"
+      pm2 save
+    )
+  fi
+
+  log "Build TripPlanner web → $TRIP_WWW"
+  (
+    cd "$TRIPPLANNER_DIR/web"
+    npm ci
+    VITE_BASE=/trip/ npm run build
+  )
+  publish_www "$TRIPPLANNER_DIR/web/dist/" "$TRIP_WWW"
+}
+
 resolve_discord_dir() {
   if [[ -d "$DISCORD_DIR/.git" ]]; then
     return
@@ -233,7 +274,7 @@ reload_nginx() {
 TARGETS=()
 NEED_NGINX=0
 if [[ $# -eq 0 ]] || [[ "${1:-}" == "all" ]]; then
-  TARGETS=(portal investment gold discord)
+  TARGETS=(portal investment gold discord tripplanner)
   NEED_NGINX=1
 else
   TARGETS=("$@")
@@ -245,9 +286,10 @@ for target in "${TARGETS[@]}"; do
     investment|inv) deploy_investment; NEED_NGINX=1 ;;
     gold) deploy_gold; NEED_NGINX=1 ;;
     discord|bot|discord-bot) deploy_discord ;;
+    tripplanner|trip) deploy_tripplanner; NEED_NGINX=1 ;;
     nginx) reload_nginx ;;
     *)
-      echo "Unknown target: $target (use portal | investment | gold | discord | nginx | all)" >&2
+      echo "Unknown target: $target (use portal | investment | gold | discord | tripplanner | nginx | all)" >&2
       exit 1
       ;;
   esac
