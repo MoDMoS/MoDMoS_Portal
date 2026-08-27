@@ -649,6 +649,7 @@ a {
 .app-sidebar {
   position: sticky;
   top: 0;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -666,6 +667,11 @@ a {
 
 .app-sidebar--collapsed {
   width: 4rem;
+  overflow: visible;
+}
+
+.app-sidebar--collapsed .app-sidebar__nav {
+  overflow: visible;
 }
 
 .app-sidebar__head {
@@ -702,6 +708,7 @@ a {
 }
 
 .app-sidebar__link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -747,6 +754,40 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.app-sidebar__tooltip {
+  display: none;
+}
+
+.app-sidebar--collapsed .app-sidebar__tooltip {
+  display: block;
+  position: absolute;
+  left: calc(100% + 0.65rem);
+  top: 50%;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text);
+  background: rgba(13, 31, 26, 0.95);
+  border: 1px solid rgba(200, 245, 74, 0.25);
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+  z-index: 999;
+}
+
+.app-sidebar--collapsed .app-sidebar__link:hover .app-sidebar__tooltip,
+.app-sidebar--collapsed .app-sidebar__link:focus-visible .app-sidebar__tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
 }
 
 .app-main {

@@ -132,6 +132,7 @@ export function DiscordLayout() {
             >
               <span className="app-sidebar__icon">{item.icon}</span>
               {open ? <span className="app-sidebar__text">{item.label}</span> : null}
+              <span className="app-sidebar__tooltip">{item.label}</span>
             </NavLink>
           ))}
         </nav>
