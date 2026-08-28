@@ -19,6 +19,7 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | Postgres Portal Auth | `127.0.0.1:5433` |
 | Postgres Gold | `127.0.0.1:5432` |
 | Postgres Investment | `127.0.0.1:5434` |
+| Postgres Discord | `127.0.0.1:5435` |
 
 ### พอร์ตบน VPS (อย่าให้ชน)
 
@@ -30,6 +31,7 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `5432` | Gold Postgres (docker) |
 | `5433` | Portal Auth Postgres (docker) |
 | `5434` | Investment Postgres (docker) |
+| `5435` | Discord Postgres (docker) |
 | `8080` | Investment (docker) |
 
 ## Docker network ร่วม (`modmos-db`)
@@ -41,6 +43,7 @@ Postgres ทุกตัว + Portal API อยู่บน network **`modmos-db
 | Portal Postgres | `portal_postgres:5432` |
 | Gold Postgres | `gold_agent_postgres:5432` |
 | Investment Postgres | `investment_postgres:5432` |
+| Discord Postgres | `discord_postgres:5432` |
 
 สร้าง network (ครั้งแรก / ก่อน compose):
 
@@ -54,7 +57,7 @@ Postgres ทุกตัว + Portal API อยู่บน network **`modmos-db
 ```env
 GOLD_DATABASE_URL=postgresql://goldagent:PASSWORD@gold_agent_postgres:5432/gold_agent?schema=public
 INVESTMENT_DATABASE_URL=postgresql://investment:investment@investment_postgres:5432/investment?schema=public
-DISCORD_DATABASE_URL=...   # Neon (cloud)
+DISCORD_DATABASE_URL=postgresql://discord:discord@discord_postgres:5432/modmos_discord?schema=public
 ```
 
 `deploy-modmos` จะสร้าง network ให้อัตโนมัติ
@@ -98,6 +101,19 @@ AUTH_SECRET=your-long-random-secret
 cd ~/MoDMoS_Portal/api
 INVESTMENT_SQLITE_PATH=$HOME/Investment/data/app.db npm run migrate:from-investment
 # หรือ path ไปยังไฟล์ SQLite ของ Investment
+```
+
+### Migrate ข้อมูล Discord Bot จาก Neon มา VPS (ครั้งเดียว)
+
+```bash
+cd ~/MoDMoS_Bot_Discord
+# รัน container discord_postgres ก่อน
+docker compose up -d db
+
+# ย้ายข้อมูลจาก Neon มา VPS Postgres
+SOURCE_URL="postgresql://user:pass@ep-xyz.neon.tech/neondb?sslmode=require" \
+TARGET_URL="postgresql://discord:discord@127.0.0.1:5435/modmos_discord" \
+node scripts/migrate-from-neon.js
 ```
 
 ## Deploy อัตโนมัติ (แนะนำ)

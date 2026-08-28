@@ -12,7 +12,7 @@ const DB_SOURCES = [
   { id: 'portal', name: 'Portal Auth', envKey: 'DATABASE_URL' },
   { id: 'gold', name: 'Gold Agent', envKey: 'GOLD_DATABASE_URL' },
   { id: 'investment', name: 'Investment', envKey: 'INVESTMENT_DATABASE_URL' },
-  { id: 'discord', name: 'Discord (Neon)', envKey: 'DISCORD_DATABASE_URL' },
+  { id: 'discord', name: 'Discord Bot', envKey: 'DISCORD_DATABASE_URL' },
 ] as const;
 
 export type DatabaseId = (typeof DB_SOURCES)[number]['id'];
@@ -21,6 +21,7 @@ const DOCKER_DB_HOSTS: Partial<Record<DatabaseId, string>> = {
   portal: 'portal_postgres',
   gold: 'gold_agent_postgres',
   investment: 'investment_postgres',
+  discord: 'discord_postgres',
 };
 
 export type DatabaseSummary = {
@@ -93,12 +94,15 @@ export class DbViewerService implements OnModuleDestroy {
 
     let pool = this.pools.get(id);
     if (!pool) {
+      const isSsl =
+        connectionString.includes('sslmode=require') ||
+        connectionString.includes('neon.tech');
       pool = new Pool({
         connectionString,
         max: 3,
         idleTimeoutMillis: 30_000,
         connectionTimeoutMillis: 5_000,
-        ssl: id === 'discord' ? { rejectUnauthorized: false } : undefined,
+        ssl: isSsl ? { rejectUnauthorized: false } : undefined,
       });
       this.pools.set(id, pool);
     }

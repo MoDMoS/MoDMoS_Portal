@@ -231,6 +231,17 @@ deploy_discord() {
     exit 1
   fi
 
+  if [[ -f "$DISCORD_DIR/docker-compose.yml" ]]; then
+    log "Start Discord Postgres (docker)"
+    ensure_docker_network
+    (
+      cd "$DISCORD_DIR"
+      docker compose up -d db
+      docker compose ps
+    )
+    ensure_docker_network
+  fi
+
   log "Install Discord bot deps + register slash commands"
   (
     cd "$DISCORD_DIR"

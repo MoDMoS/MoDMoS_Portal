@@ -1,6 +1,6 @@
 # MoDMoS Ecosystem — สรุปโครงสร้างทุก Repo
 
-อัปเดต: 2026-08-24
+อัปเดต: 2026-08-28
 
 เอกสารนี้เป็น **แผนที่ระบบรวม** ของโปรเจกต์ MoDMoS ทั้ง 4 repo  
 รายละเอียดเชิงลึกอยู่ที่ docs ในแต่ละ repo (ดูลิงก์ท้ายเอกสาร)
@@ -18,7 +18,7 @@ Browser
        └─ /discord-api/     → Discord bot Express :3000
 
 SSO: cookie access_token ← ออกโดย Portal Auth เท่านั้น
-ภายนอก: Capital.com ← Gold | Yahoo/SEC ← Investment | Discord+Neon ← Bot
+ภายนอก: Capital.com ← Gold | Yahoo/SEC ← Investment | Discord Gateway ← Bot
          Photon/Nominatim/OSRM ← TripPlanner (zero paid API)
 ```
 
@@ -27,7 +27,7 @@ SSO: cookie access_token ← ออกโดย Portal Auth เท่านั�
 | [MoDMoS_Portal](../README.md) | Hub: หน้าแรก, Login/SSO, Admin RBAC, launcher | UI `:80` · API `:3001` · PG `:5433` |
 | [Investment](../../Investment/README.md) | สมุดบัญชีลงทุน (FX / หุ้น / ปันผล / corporate action / snapshot / ภาษี) | Docker `:8080` · PG `:5434` |
 | [Gold_agent](../../Gold_agent/docs/README.md) | เอเจนต์เทรดทอง XAUUSD (Capital + strategy/risk) | API `:3002` · PG `:5432` · UI `/gold/` |
-| [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · Neon cloud |
+| [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · PG `:5435` |
 
 สิทธิ์ SSO ที่ใช้ร่วมกัน: `service:investment` · `service:gold-agent` · `service:discord` · `admin:access`  
 `AUTH_SECRET` ต้องตรงกันทุกบริการที่ verify cookie
@@ -97,13 +97,13 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 
 ## 4) MoDMoS_Bot_Discord
 
-**ทำอะไร:** บอท Discord — whitelist IGN, ยศ Class, nickname, Approve/Reject · Portal ดู health/status/logs
+**ทำอะไร:** บอท Discord — whitelist IGN, ยศ Class, nickname, Approve/Reject · Portal ดู health/status/logs · จัดการประกาศตามเวลา (Announcements) · รายชื่อสมาชิก (Roster)
 
 | ชั้น | Stack |
 |------|--------|
 | Bot | Node ESM, discord.js v14 |
 | HTTP | Express (`httpApi.js`) |
-| DB | Neon Postgres |
+| DB | PostgreSQL (`discord_postgres:5432` / host `:5435`) |
 
 **SSO:** Express ตรวจ cookie · `/status` และ `/logs` ต้องการ `service:discord` หรือ `admin:access`  
 **Portal UI:** `/discord` → sidebar (`/announcements` สร้าง/แก้ไข · `/roster` · `/logs`)
@@ -120,7 +120,7 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 | Investment / Gold / Discord → Portal | verify JWT เท่านั้น — ไม่เรียก business API ของกันและกัน |
 | Gold → Capital.com | ราคา + ออเดอร์ demo |
 | Investment → Yahoo / SEC | quotes / NAV |
-| Discord → Discord Gateway + Neon | รันบอท |
+| Discord → Discord Gateway + Local Postgres | รันบอท |
 
 Deploy รวม: `MoDMoS_Portal/scripts/deploy-all.sh` (`portal` \| `investment` \| `gold` \| `discord` \| `tripplanner`)
 
