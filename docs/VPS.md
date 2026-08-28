@@ -19,7 +19,7 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | Postgres Portal Auth | `127.0.0.1:5433` |
 | Postgres Gold | `127.0.0.1:5432` |
 | Postgres Investment | `127.0.0.1:5434` |
-| Postgres Discord | `127.0.0.1:5435` |
+| Postgres Discord | `127.0.0.1:5436` |
 
 ### พอร์ตบน VPS (อย่าให้ชน)
 
@@ -31,7 +31,7 @@ Portal API (Postgres) ออก JWT — Investment และ Gold แค่ veri
 | `5432` | Gold Postgres (docker) |
 | `5433` | Portal Auth Postgres (docker) |
 | `5434` | Investment Postgres (docker) |
-| `5435` | Discord Postgres (docker) |
+| `5436` | Discord Postgres (docker) |
 | `8080` | Investment (docker) |
 
 ## Docker network ร่วม (`modmos-db`)
@@ -112,7 +112,7 @@ docker compose up -d db
 
 # ย้ายข้อมูลจาก Neon มา VPS Postgres
 SOURCE_URL="postgresql://user:pass@ep-xyz.neon.tech/neondb?sslmode=require" \
-TARGET_URL="postgresql://discord:discord@127.0.0.1:5435/modmos_discord" \
+TARGET_URL="postgresql://discord:discord@127.0.0.1:5436/modmos_discord" \
 node scripts/migrate-from-neon.js
 ```
 

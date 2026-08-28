@@ -27,7 +27,7 @@ SSO: cookie access_token ← ออกโดย Portal Auth เท่านั�
 | [MoDMoS_Portal](../README.md) | Hub: หน้าแรก, Login/SSO, Admin RBAC, launcher | UI `:80` · API `:3001` · PG `:5433` |
 | [Investment](../../Investment/README.md) | สมุดบัญชีลงทุน (FX / หุ้น / ปันผล / corporate action / snapshot / ภาษี) | Docker `:8080` · PG `:5434` |
 | [Gold_agent](../../Gold_agent/docs/README.md) | เอเจนต์เทรดทอง XAUUSD (Capital + strategy/risk) | API `:3002` · PG `:5432` · UI `/gold/` |
-| [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · PG `:5435` |
+| [MoDMoS_Bot_Discord](../../MoDMoS_Bot_Discord/docs/system-overview.md) | บอทกิลด์ Discord + status บน Portal | Express `:3000` · PG `:5436` |
 
 สิทธิ์ SSO ที่ใช้ร่วมกัน: `service:investment` · `service:gold-agent` · `service:discord` · `admin:access`  
 `AUTH_SECRET` ต้องตรงกันทุกบริการที่ verify cookie
@@ -103,7 +103,7 @@ Docker network ร่วม: `modmos-db` (ดู [VPS.md](./VPS.md))
 |------|--------|
 | Bot | Node ESM, discord.js v14 |
 | HTTP | Express (`httpApi.js`) |
-| DB | PostgreSQL (`discord_postgres:5432` / host `:5435`) |
+| DB | PostgreSQL (`discord_postgres:5432` / host `:5436`) |
 
 **SSO:** Express ตรวจ cookie · `/status` และ `/logs` ต้องการ `service:discord` หรือ `admin:access`  
 **Portal UI:** `/discord` → sidebar (`/announcements` สร้าง/แก้ไข · `/roster` · `/logs`)
